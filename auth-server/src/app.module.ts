@@ -11,7 +11,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     // 환경변수(.env) 사용을 위한 전역 설정
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+      isGlobal: true,
+    }),
 
     // MongoDB 연결 설정 (MONGO_URL 환경변수에서 주소 로드)
     MongooseModule.forRoot(process.env.MONGO_URL),
@@ -30,9 +33,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  
+
   // 기본 컨트롤러 및 서비스 등록
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

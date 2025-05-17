@@ -6,7 +6,7 @@ import { RewardRequest } from './reward-request.schema';
 import { Model, Types } from 'mongoose';
 import { Event } from '../event/event.schema';
 import { Reward } from '../reward/reward.schema';
-import { InviteService } from '../event/invite.service';
+import { InviteService } from '../event-list/invite/invite.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
@@ -46,20 +46,19 @@ export class RewardRequestService {
 
       // 로그인 횟수 기반 조건 검사
       case 'LOGIN_THREE':
-      case 'LOGIN_THREE_RECENT': {
+      case 'LOGIN_SEVEN_RECENT': {
         try {
           // 내부 API를 통해 로그인 로그 데이터 요청
           const { data } = await firstValueFrom(
-            this.httpService.get(`http://localhost:3001/internal/login-count/${userId}`)
+            this.httpService.get(`http://localhost:3001/user/login-count/${userId}`)
           );
-
           // 전체 고유 로그인 일수가 3일 이상인지 검사
           if (condition === 'LOGIN_THREE') {
             return data.totalUniqueDays >= 3;
 
-            // 최근 7일 간 고유 로그인 일수가 3일 이상인지 검사
+            // 7일 연속 출석 검사
           } else {
-            return data.recent7DaysUnique >= 3;
+            return data.recent7DaysUnique == 7;
           }
         } catch (error) {
           // 로그인 로그 서버 요청 실패 시 조건 불충족 처리
@@ -88,7 +87,8 @@ export class RewardRequestService {
     }
 
     // 보상이 존재하는지 확인
-    const rewards = await this.rewardModel.find({ event: new Types.ObjectId(eventId) });
+    const rewards = await this.rewardModel.find({ event: eventId });
+
     if (rewards.length === 0) {
       throw new BadRequestException('이벤트에 등록된 보상이 없습니다.');
     }
@@ -122,12 +122,33 @@ export class RewardRequestService {
 
   // 전체 보상 요청 목록 조회 (유저 + 이벤트 정보 포함)
   async getAllRequests() {
-    return this.requestModel
+    const requests = await this.requestModel
       .find()
-      .populate('userId')   // 유저 정보 포함
-      .populate('event')    // 이벤트 정보 포함
+      .populate('event') // 이벤트 정보는 같은 DB 스키마에서 참조 가능
       .sort({ createdAt: -1 })
       .exec();
+
+    // 내부 API로 각 유저 정보 병렬 요청
+    const results = await Promise.all(
+      requests.map(async (req) => {
+        let user = null;
+        try {
+          const response = await firstValueFrom(
+            this.httpService.get(`http://localhost:3001/user/${req.userId}`)
+          );
+          user = response.data;
+        } catch (err) {
+          console.error(`유저 정보 조회 실패: ${req.userId}`, err.message);
+        }
+
+        return {
+          ...req.toObject(),
+          user, // 유저 정보 포함
+        };
+      })
+    );
+
+    return results;
   }
 
   // 특정 유저가 요청한 보상 내역 조회 (이벤트 정보 포함)

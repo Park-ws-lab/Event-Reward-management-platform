@@ -13,17 +13,21 @@ export class Reward {
     @Prop({ type: Types.ObjectId, ref: Event.name, required: true })
     event: Types.ObjectId;
 
-    // 보상 유형 (예: 'POINT', 'COUPON', 'ITEM' 등)
-    @Prop({ required: true })
-    type: string;
+    // 보상 유형 ('ITEM', 'POINT', 'COUPON', 'CURRENCY')
+    @Prop({ required: true, enum: ['ITEM', 'POINT', 'COUPON', 'CURRENCY'] })
+    type: 'ITEM' | 'POINT' | 'COUPON' | 'CURRENCY';
 
-    // 보상 내용 (예: 500포인트, 장비 상자 등)
+    // 보상 내용 (예: 포인트나 재화의 양 등)
     @Prop({ required: true })
-    value: string;
+    value?: string;
 
     // 보상 수량 (기본값: 1)
     @Prop({ default: 1 })
     quantity: number;
+
+    // 보상 설명 ex: “게임 내에서 사용할 수 있는 특별한 검입니다.”
+    @Prop()
+    description?: string;
 }
 
 // Reward 클래스를 기반으로 스키마 생성

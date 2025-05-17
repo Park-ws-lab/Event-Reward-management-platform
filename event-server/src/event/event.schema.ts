@@ -20,9 +20,9 @@ export class Event {
   @Prop({ required: true })
   description: string;
 
-  // 참여 조건
-  @Prop({ required: true })
-  condition: string;
+  // 이벤트 조건 (FIRST_LOGIN, )
+  @Prop({ required: true, enum: ['FIRST_LOGIN', 'INVITE_THREE', 'LOGIN_THREE', 'LOGIN_SEVEN_RECENT'] })
+  condition: 'FIRST_LOGIN' | 'INVITE_THREE' | 'LOGIN_THREE' | 'LOGIN_SEVEN_RECENT';;
 
   // 이벤트 시작 날짜
   @Prop({ required: true })

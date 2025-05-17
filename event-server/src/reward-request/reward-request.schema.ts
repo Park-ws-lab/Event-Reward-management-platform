@@ -9,8 +9,8 @@ export type RewardRequestDocument = RewardRequest & Document;
 
 @Schema({ timestamps: true }) // createdAt, updatedAt 필드 자동 생성
 export class RewardRequest {
-  // 보상을 요청한 유저의 ID (User 컬렉션 참조)
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  // 보상을 요청한 유저의 ID
+  @Prop({ type: Types.ObjectId, required: true })
   userId: Types.ObjectId;
 
   // 보상을 요청한 이벤트의 ID (Event 컬렉션 참조)
@@ -18,7 +18,7 @@ export class RewardRequest {
   event: Types.ObjectId;
 
   // 요청 상태 ('PENDING' | 'SUCCESS' | 'FAILED'), 기본값은 PENDING
-  @Prop({ default: 'PENDING' })
+  @Prop({ default: 'PENDING', enum: ['PENDING', 'SUCCESS', 'FAILED'] })
   status: 'PENDING' | 'SUCCESS' | 'FAILED';
 
   // 실패 사유 등의 설명 (선택 필드)

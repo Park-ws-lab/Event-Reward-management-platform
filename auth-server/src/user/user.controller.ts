@@ -1,4 +1,5 @@
 // 'user' 경로에 대한 회원가입 및 로그인 API 제공
+
 import {
   Controller,
   Post,
@@ -25,7 +26,7 @@ export class UserController {
 
     @InjectModel(LoginLog.name)
     private readonly loginlogModel: Model<LoginLogDocument>,
-  ) {}
+  ) { }
 
   // [POST] /user/register - 사용자 회원가입 API
   @Post('register')
@@ -69,8 +70,8 @@ export class UserController {
     };
   }
 
-  // [GET] /user/internal/login-count/:userId
-  @Get('/internal/login-count/:userId')
+  // [GET] /user/login-count/:userId - 특정 유저 전체 및 최근 7일 이내 로그인 횟수 조회 API
+  @Get('/login-count/:userId')
   async getLoginCount(@Param('userId') userId: string) {
     // 유저 조회
     const user = await this.userModel.findById(userId);
@@ -102,5 +103,13 @@ export class UserController {
       totalUniqueDays: allDays.size,
       recent7DaysUnique: recent7Days.size,
     };
+  }
+
+  // [GET] /:userId - 전체 보상 요청 목록 조회 시 유저 정보 포함을 위한 유저 정보 제공 API
+  @Get(':userId')
+  async getUserById(@Param('userId') userId: string) {
+    const user = await this.userModel.findById(userId).select('-password'); // 비밀번호 제외
+    if (!user) throw new NotFoundException('유저를 찾을 수 없습니다');
+    return user;
   }
 }

@@ -6,8 +6,9 @@ import { RewardRequestService } from './reward-request.service';
 import { RewardRequestController } from './reward-request.controller';
 import { RewardRequest, RewardRequestSchema } from './reward-request.schema';
 import { EventModule } from '../event/event.module';
-import { InviteModule } from '../event/invite.module';
+import { InviteModule } from '../event-list/invite/invite.module';
 import { RewardModule } from '../reward/reward.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RewardModule } from '../reward/reward.module';
     EventModule,
     InviteModule,
     RewardModule,
+    HttpModule
   ],
 
   // 비즈니스 로직을 처리할 서비스

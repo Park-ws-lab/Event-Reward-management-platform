@@ -14,7 +14,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { JwtAuthGuard } from '../auth/auth.guard';
 
 // 프론트에서 요청 시 /reward-request 경로로 진입
-@Controller('reward-request')
+@Controller('reward-requests')
 @UseGuards(JwtAuthGuard, RolesGuard) // 인증 및 역할 기반 가드 적용
 export class RewardRequestProxyController {
   // [POST] /reward-request - 보상 요청 생성

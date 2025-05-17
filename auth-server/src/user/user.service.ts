@@ -27,13 +27,12 @@ export class UserService {
     async register(username: string, password: string, role: string = "USER") {
         const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 해싱
 
-        const user = new this.userModel({
+        // MongoDB에 사용자 저장
+        return this.userModel.create({
             username,
             password: hashedPassword,
             role,
         });
-
-        return user.save(); // MongoDB에 사용자 저장
     }
 
     // 로그인: 사용자 조회 + 비밀번호 비교 + JWT 토큰 발급
@@ -54,7 +53,7 @@ export class UserService {
 
         // 로그인 로그 기록
         await this.loginlogModel.create({ username });
-        
+
         return { access_token: token, }; // 토큰 반환
     }
 }

@@ -5,9 +5,6 @@ import {
     Post,
     Get,
     Body,
-    Param,
-    UseGuards,
-    Request,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
