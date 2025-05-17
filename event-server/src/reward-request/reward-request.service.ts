@@ -7,6 +7,8 @@ import { Model, Types } from 'mongoose';
 import { Event } from '../event/event.schema';
 import { Reward } from '../reward/reward.schema';
 import { InviteService } from '../event/invite.service';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class RewardRequestService {
@@ -25,20 +27,53 @@ export class RewardRequestService {
 
     // 초대 수 검증을 위한 서비스
     private readonly inviteService: InviteService,
+
+    private readonly httpService: HttpService,
   ) { }
 
-  // 이벤트 조건 문자열에 따라 보상 수령 자격 검증
+  // 이벤트 조건 문자열에 따라 보상 수령 자격을 검증하는 메서드
   async validateCondition(userId: string, condition: string): Promise<boolean> {
     switch (condition) {
+
+      // 첫 로그인 조건: 별도 검사 없이 무조건 통과
       case 'FIRST_LOGIN':
-        return true; // 단순 조건: 항상 통과
+        return true;
+
+      // 초대한 친구 수가 3명 이상인지 검사
       case 'INVITE_THREE':
-        const count = await this.inviteService.countInvites(userId);
-        return count >= 3; // 3명 이상 초대 여부
+        const count = await this.inviteService.countInvites(userId); // 초대한 친구 수 조회
+        return count >= 3;
+
+      // 로그인 횟수 기반 조건 검사
+      case 'LOGIN_THREE':
+      case 'LOGIN_THREE_RECENT': {
+        try {
+          // 내부 API를 통해 로그인 로그 데이터 요청
+          const { data } = await firstValueFrom(
+            this.httpService.get(`http://localhost:3001/internal/login-count/${userId}`)
+          );
+
+          // 전체 고유 로그인 일수가 3일 이상인지 검사
+          if (condition === 'LOGIN_THREE') {
+            return data.totalUniqueDays >= 3;
+
+            // 최근 7일 간 고유 로그인 일수가 3일 이상인지 검사
+          } else {
+            return data.recent7DaysUnique >= 3;
+          }
+        } catch (error) {
+          // 로그인 로그 서버 요청 실패 시 조건 불충족 처리
+          console.error('Login log fetch failed:', error.message);
+          return false;
+        }
+      }
+
+      // 등록되지 않은 조건일 경우 무조건 실패 처리
       default:
-        return false; // 조건 미일치 시 실패
+        return false;
     }
   }
+
 
   // 보상 요청 생성 로직
   async createRequest(userId: string, eventId: string) {

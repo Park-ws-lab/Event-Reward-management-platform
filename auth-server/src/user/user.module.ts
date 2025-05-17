@@ -6,12 +6,14 @@ import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './user.schema';
 import { JwtStrategy } from './jwt.strategy';
+import { LoginLog, LoginLogSchema } from './login-log.schema';
 
 @Module({
   imports: [
     // Mongoose를 통해 User 스키마를 MongoDB 모델로 등록
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
+      { name: LoginLog.name, schema: LoginLogSchema },
     ]),
   ],
   

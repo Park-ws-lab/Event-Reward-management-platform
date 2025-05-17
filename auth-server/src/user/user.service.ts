@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
+import { LoginLog, LoginLogDocument } from './login-log.schema'
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -14,9 +15,13 @@ export class UserService {
         @InjectModel(User.name)
         private userModel: Model<UserDocument>,
 
+        // MongoDB의 User 모델 주입
+        @InjectModel(LoginLog.name)
+        private loginlogModel: Model<LoginLogDocument>,
+
         // JWT 토큰 생성을 위한 서비스 주입
         private jwtService: JwtService,
-    ) {}
+    ) { }
 
     // 회원가입: bcrypt를 이용해 비밀번호를 암호화한 후 MongoDB에 사용자 정보 저장
     async register(username: string, password: string, role: string = "USER") {
@@ -47,6 +52,9 @@ export class UserService {
 
         const token = this.jwtService.sign(payload); // JWT 토큰 생성
 
-        return { access_token: token }; // 토큰 반환
+        // 로그인 로그 기록
+        await this.loginlogModel.create({ username });
+        
+        return { access_token: token, }; // 토큰 반환
     }
 }
