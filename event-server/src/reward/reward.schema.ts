@@ -1,22 +1,30 @@
+// Reward 스키마 정의의
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
 import { Event } from '../event/event.schema';
 
+// Reward 모델에 Mongo 문서 관련 기능을 합친 타입
 export type RewardDocument = Reward & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true }) // createdAt, updatedAt 자동 생성
 export class Reward {
-    @Prop({ type: Types.ObjectId, ref: Event.name, required: true }) // 이벤트
+    // 연결된 이벤트의 ID (참조: Event 컬렉션)
+    @Prop({ type: Types.ObjectId, ref: Event.name, required: true })
     event: Types.ObjectId;
 
-    @Prop({ required: true }) //포인트, 아이템, 쿠폰... 등의 타입
+    // 보상 유형 (예: 'POINT', 'COUPON', 'ITEM' 등)
+    @Prop({ required: true })
     type: string;
 
-    @Prop({ required: true }) // 500, 장비 상자, ... 등의 세부 내용
+    // 보상 내용 (예: 500포인트, 장비 상자 등)
+    @Prop({ required: true })
     value: string;
 
-    @Prop({ default: 1 }) // 수량
+    // 보상 수량 (기본값: 1)
+    @Prop({ default: 1 })
     quantity: number;
 }
 
+// Reward 클래스를 기반으로 스키마 생성
 export const RewardSchema = SchemaFactory.createForClass(Reward);
