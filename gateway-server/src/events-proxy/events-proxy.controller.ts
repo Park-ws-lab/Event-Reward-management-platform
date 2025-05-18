@@ -41,7 +41,7 @@ export class EventsProxyController {
 
   // 공통 프록시 처리 함수: 요청을 내부 이벤트 서버로 전달
   private async proxy(req: ExpressRequest, res: ExpressResponse) {
-    const targetUrl = `http://localhost:3002${req.originalUrl}`;
+    const targetUrl = `http://event-server:3002${req.originalUrl}`;
     const axios = await import('axios');
 
     try {

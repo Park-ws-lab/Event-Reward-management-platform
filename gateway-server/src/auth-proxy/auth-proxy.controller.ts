@@ -31,7 +31,7 @@ export class AuthProxyController {
 
   // 프록시 처리 함수: 요청을 내부 API 서버로 전달하고 응답을 그대로 클라이언트에 반환
   async proxy(req: Request, res: Response) {
-    const targetUrl = 'http://localhost:3001' + req.url;
+    const targetUrl = `http://auth-server:${process.env.AUTH_PORT}` + req.url;
 
     try {
       const { data, status } = await this.httpService

@@ -50,7 +50,7 @@ export class RewardRequestService {
         try {
           // 내부 API를 통해 로그인 로그 데이터 요청
           const { data } = await firstValueFrom(
-            this.httpService.get(`http://localhost:3001/user/login-count/${userId}`)
+            this.httpService.get(`http://auth-server:${process.env.AUTH_PORT}/user/login-count/${userId}`)
           );
           // 전체 고유 로그인 일수가 3일 이상인지 검사
           if (condition === 'LOGIN_THREE') {
@@ -110,12 +110,22 @@ export class RewardRequestService {
     });
     await request.save();
 
+    // 보상 내용 저장
+    const rewardList = isEligible
+      ? rewards.map((r) => ({
+        type: r.type,
+        value: r.value,
+        quantity: r.quantity,
+      }))
+      : undefined;
+
     // 결과 메시지 및 상태 반환
     return {
       message: isEligible
         ? '보상이 지급되었습니다.'
         : '조건을 만족하지 않았습니다.',
       status,
+      ...(isEligible && { rewards: rewardList }),
     };
   }
 
@@ -133,7 +143,7 @@ export class RewardRequestService {
         let user = null;
         try {
           const response = await firstValueFrom(
-            this.httpService.get(`http://localhost:3001/user/${req.userId}`)
+            this.httpService.get(`http://auth-server:${process.env.AUTH_PORT}/user/${req.userId}`)
           );
           user = response.data;
         } catch (err) {

@@ -1,4 +1,3 @@
-# Node 18 기반 이미지
 FROM node:18
 
 WORKDIR /app
@@ -8,5 +7,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3001
-CMD ["npm", "run", "start:dev"]
+RUN npm run build
+
+CMD ["node", "dist/main"]

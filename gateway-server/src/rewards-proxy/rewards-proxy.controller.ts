@@ -33,7 +33,7 @@ export class RewardsProxyController {
 
   // 공통 프록시 처리 함수: 요청을 내부 서버로 전달하고 응답을 반환
   private async proxy(req: ExpressRequest, res: ExpressResponse) {
-    const targetUrl = `http://localhost:3002${req.originalUrl}`;
+    const targetUrl = `http://event-server:3002${req.originalUrl}`;
     const axios = await import('axios'); // axios 동적 import
 
     try {

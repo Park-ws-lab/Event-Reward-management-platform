@@ -1,50 +1,54 @@
 version: '3.8'
 services:
-  gateway:
-    build: ./gateway-server
-    ports:
-      - "3000:3000"
-    depends_on:
-      - auth
-      - event
-    networks:
-      - app-network
-
-  auth:
+  auth-server:
     build: ./auth-server
+    container_name: auth-server
     ports:
-      - "3001:3001"
+      - '3001:3001'
+    env_file:
+      - ./auth-server/.env
     depends_on:
       - mongo
-    environment:
-      - MONGO_URL=mongodb://mongo:27017/auth-db
     networks:
-      - app-network
+      - backend
 
-  event:
+  event-server:
     build: ./event-server
+    container_name: event-server
     ports:
-      - "3002:3002"
+      - '3002:3002'
+    env_file:
+      - ./event-server/.env
     depends_on:
       - mongo
-    environment:
-      - MONGO_URL=mongodb://mongo:27017/event-db
     networks:
-      - app-network
+      - backend
+
+  gateway-server:
+    build: ./gateway-server
+    container_name: gateway-server
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./gateway-server/.env
+    depends_on:
+      - auth-server
+      - event-server
+    networks:
+      - backend
 
   mongo:
-    image: mongo:6
-    container_name: mongo
+    image: mongo:5.0
+    container_name: mongodb
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongo-data:/data/db
     networks:
-      - app-network
+      - backend
+
+networks:
+  backend:
 
 volumes:
   mongo-data:
-
-networks:
-  app-network:
-    driver: bridge
