@@ -31,9 +31,10 @@ docker-compose up --build
 - TypeScript
 
 - Jest (단위 테스트 일부 포함)
+```
 
 
-##🗃️ 폴더 구조
+## 🗃️ 폴더 구조
 
 .
 ├── auth-server/         # 사용자 등록, 로그인, JWT 발급
@@ -43,7 +44,7 @@ docker-compose up --build
 └── README.md            # 설명 문서
 
 
-##🔐 사용자 역할
+## 🔐 사용자 역할
 
 | 역할       | 설명                   |
 | -------- | -------------------- |
@@ -53,7 +54,7 @@ docker-compose up --build
 | ADMIN    | 전체 권한 보유             |
 
 
-##🧾 .env 설정 예시
+## 🧾 .env 설정 예시
 
 .env는 각 서버 폴더(auth-server, event-server, gateway-server) 안에 생성해주세요.
 
@@ -64,20 +65,20 @@ PORT=3001
 JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 ```
 
-#📁 event-server/.env
+# 📁 event-server/.env
 ```bash
 MONGO_URL=mongodb://mongodb:27017/event-db
 PORT=3002
 ```
 
-#📁 gateway-server/.env
+# 📁 gateway-server/.env
 ```bash
 JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 AUTH_PORT=3001
 EVENT-PORT=3002
 ```
 
-#📌 이벤트 설계
+# 📌 이벤트 설계
 
 | 이벤트 코드               | 설명               |
 | -------------------- | ---------------- |
@@ -86,7 +87,7 @@ EVENT-PORT=3002
 | LOGIN\_THREE         | 3일 이상 로그인 시 보상   |
 | LOGIN\_THREE\_RECENT | 최근 7일 중 3일 로그인 시 |
 
-#✅ 조건 검증 방식
+# ✅ 조건 검증 방식
 
 - INVITE_THREE: 초대한 유저 수를 InviteService를 통해 확인
 
@@ -96,7 +97,7 @@ EVENT-PORT=3002
 
 - 조건 로직은 이벤트마다 switch 분기로 구성되어 있어 유연한 확장 가능
 
-#📐 API 설계 및 구조 선택 이유
+# 📐 API 설계 및 구조 선택 이유
 
 - Gateway Server가 진입점이 되어 모든 요청에 대해 인증 및 역할 검증을 수행
 
@@ -106,7 +107,7 @@ EVENT-PORT=3002
 
 - 조건 검증 로직을 서비스 내에 일반화 가능하도록 설계해 확장성 고려
 
-#🧪 테스트 시나리오 예시
+# 🧪 테스트 시나리오 예시
 
 - 유저가 로그인 3회를 달성한 후 보상을 요청하면 성공해야 한다.
 
@@ -118,7 +119,7 @@ EVENT-PORT=3002
 
 일부 단위 테스트는 auth-server/test, event-server/test에 포함
 
-#💡 구현 중 고민 및 해결
+# 💡 구현 중 고민 및 해결
 
 - 조건 검증 로직 일반화: 조건을 코드(enum)로 구분하고, 내부 서비스에서 각 조건별 처리 메서드를 분기 처리함으로써 확장 가능한 구조로 설계
 
