@@ -59,6 +59,7 @@ docker-compose up --build
 | ADMIN    | 전체 권한 보유             |
 
 <br>
+
 ## 🧾 .env 설정 예시
 
 .env는 각 서버 폴더(auth-server, event-server, gateway-server) 안에 생성해주세요.
@@ -94,6 +95,7 @@ EVENT-PORT=3002
 | LOGIN\_THREE\_RECENT | 최근 7일 중 3일 로그인 시 |
 
 <br>
+
 ## ✅ 조건 검증 방식
 
 - INVITE_THREE: 초대한 유저 수를 InviteService를 통해 확인
@@ -105,6 +107,7 @@ EVENT-PORT=3002
 - 조건 로직은 이벤트마다 switch 분기로 구성되어 있어 유연한 확장 가능
 
 <br>
+
 ## 📐 API 설계 및 구조 선택 이유
 
 - Gateway Server가 진입점이 되어 모든 요청에 대해 인증 및 역할 검증을 수행
@@ -116,6 +119,7 @@ EVENT-PORT=3002
 - 조건 검증 로직을 서비스 내에 일반화 가능하도록 설계해 확장성 고려
 
 <br>
+
 ## 🧪 테스트 시나리오 예시
 
 - 유저가 로그인 3회를 달성한 후 보상을 요청하면 성공해야 한다.
@@ -129,6 +133,7 @@ EVENT-PORT=3002
 일부 단위 테스트는 auth-server/test, event-server/test에 포함
 
 <br>
+
 ## 💡 구현 중 고민 및 해결
 
 - 조건 검증 로직 일반화: 조건을 코드(enum)로 구분하고, 내부 서비스에서 각 조건별 처리 메서드를 분기 처리함으로써 확장 가능한 구조로 설계
