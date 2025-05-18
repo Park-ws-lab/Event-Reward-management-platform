@@ -1,7 +1,7 @@
 # 🎮 이벤트 / 보상 관리 플랫폼
 
-NestJS 기반 MSA 아키텍처로 구현된 이벤트 보상 자동화 플랫폼입니다.
-사용자는 조건 충족 시 보상을 요청할 수 있고, 운영자는 조건과 보상을 설정하며,
+NestJS 기반 MSA 아키텍처로 구현된 이벤트 보상 자동화 플랫폼입니다.<br>
+사용자는 조건 충족 시 보상을 요청할 수 있고, 운영자는 조건과 보상을 설정하며,<br>
 감사자는 지급 내역만 조회할 수 있도록 구성되어 있습니다.
 
 ---
@@ -19,7 +19,7 @@ cd event-reward-platform
 # 3. Docker Compose 실행
 docker-compose up --build
 ```
-
+<br>
 
 ## ⚙️ 개발 환경
 
@@ -35,7 +35,7 @@ docker-compose up --build
 
 - Jest (단위 테스트 일부 포함)
 
-
+<br>
 ## 🗃️ 폴더 구조
 ```bash
 .
@@ -45,7 +45,7 @@ docker-compose up --build
 ├── docker-compose.yml   # 전체 서비스 실행 설정
 └── README.md            # 설명 문서
 ```
-
+<br>
 
 ## 🔐 사용자 역할
 
@@ -56,31 +56,31 @@ docker-compose up --build
 | AUDITOR  | 모든 보상 요청 이력 조회만 가능   |
 | ADMIN    | 전체 권한 보유             |
 
-
+<br>
 ## 🧾 .env 설정 예시
 
 .env는 각 서버 폴더(auth-server, event-server, gateway-server) 안에 생성해주세요.
 
-# 📁 auth-server/.env
+### 📁 auth-server/.env
 ```env
 MONGO_URL=mongodb://mongodb:27017/user-db
 PORT=3001
 JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 ```
 
-# 📁 event-server/.env
+### 📁 event-server/.env
 ```env
 MONGO_URL=mongodb://mongodb:27017/event-db
 PORT=3002
 ```
 
-# 📁 gateway-server/.env
+### 📁 gateway-server/.env
 ```env
 JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 AUTH_PORT=3001
 EVENT-PORT=3002
 ```
-
+<br>
 
 ## 📌 이벤트 설계
 
@@ -91,7 +91,7 @@ EVENT-PORT=3002
 | LOGIN\_THREE         | 3일 이상 로그인 시 보상   |
 | LOGIN\_THREE\_RECENT | 최근 7일 중 3일 로그인 시 |
 
-
+<br>
 ## ✅ 조건 검증 방식
 
 - INVITE_THREE: 초대한 유저 수를 InviteService를 통해 확인
@@ -102,7 +102,7 @@ EVENT-PORT=3002
 
 - 조건 로직은 이벤트마다 switch 분기로 구성되어 있어 유연한 확장 가능
 
-
+<br>
 ## 📐 API 설계 및 구조 선택 이유
 
 - Gateway Server가 진입점이 되어 모든 요청에 대해 인증 및 역할 검증을 수행
@@ -113,7 +113,7 @@ EVENT-PORT=3002
 
 - 조건 검증 로직을 서비스 내에 일반화 가능하도록 설계해 확장성 고려
 
-
+<br>
 ## 🧪 테스트 시나리오 예시
 
 - 유저가 로그인 3회를 달성한 후 보상을 요청하면 성공해야 한다.
@@ -126,7 +126,7 @@ EVENT-PORT=3002
 
 일부 단위 테스트는 auth-server/test, event-server/test에 포함
 
-
+<br>
 ## 💡 구현 중 고민 및 해결
 
 - 조건 검증 로직 일반화: 조건을 코드(enum)로 구분하고, 내부 서비스에서 각 조건별 처리 메서드를 분기 처리함으로써 확장 가능한 구조로 설계
