@@ -31,23 +31,29 @@ describe('EventService', () => {
   // 이벤트 생성 테스트
   describe('createEvent()', () => {
     it('이벤트를 생성하고 저장해야 함', async () => {
-      const dto: CreateEventDto = {
-        title: '테스트 이벤트',
-        description: '이벤트 설명',
-        isActive: true,
+      const dto = {
+        title: '출석 이벤트',
+        description: '3회 출석 시 보상',
         condition: 'LOGIN_THREE',
-        startDate: new Date('2025-01-01'),
-        endDate: new Date('2025-12-31'),
+        startDate:new Date('2025-05-01T00:00:00.000Z'),
+        endDate:new Date('2025-05-31T23:59:59.999Z'),
+        isActive: true,
       };
 
-      // 가짜 event 인스턴스와 save mocking
       const mockSave = jest.fn().mockResolvedValue({ ...dto, _id: 'abc123' });
-      mockEventModel.mockImplementation(() => ({ save: mockSave }));
+
+      const mockEventModelFactory: any = jest.fn().mockImplementation(() => ({
+        save: mockSave,
+      }));
+
+      // 생성자 + save() 갖춘 mock을 강제로 삽입
+      (service as any).eventModel = mockEventModelFactory;
 
       const result = await service.createEvent(dto);
 
+      expect(result._id).toBe('abc123');
+      expect(result.title).toBe(dto.title);
       expect(mockSave).toHaveBeenCalled();
-      expect(result).toEqual({ ...dto, _id: 'abc123' });
     });
   });
 

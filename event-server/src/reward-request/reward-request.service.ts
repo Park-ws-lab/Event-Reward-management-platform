@@ -1,7 +1,7 @@
 // reward-request 관련 로직을 처리하는 서비스 클래스
 
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectModel, } from '@nestjs/mongoose';
 import { RewardRequest } from './reward-request.schema';
 import { Model, Types } from 'mongoose';
 import { Event } from '../event/event.schema';
@@ -72,7 +72,6 @@ export class RewardRequestService {
         return false;
     }
   }
-
 
   // 보상 요청 생성 로직
   async createRequest(userId: string, eventId: string) {

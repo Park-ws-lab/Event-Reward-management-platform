@@ -31,8 +31,9 @@ describe('RewardService', () => {
   // 보상 생성 테스트
   describe('createReward()', () => {
     it('보상을 생성하고 저장해야 함', async () => {
+      const validEventId = new Types.ObjectId().toHexString();
       const dto: CreateRewardDto = {
-        eventId: 'event123', // 문자열로 전달되는 이벤트 ID
+        eventId: validEventId, // 문자열로 전달되는 이벤트 ID
         type: 'COUPON',
         value: '테스트 쿠폰',
         quantity: 100,

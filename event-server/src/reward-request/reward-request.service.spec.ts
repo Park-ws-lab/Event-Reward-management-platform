@@ -1,28 +1,24 @@
-// RewardRequestService 단위 테스트 코드
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { RewardRequestService } from './reward-request.service';
 import { getModelToken } from '@nestjs/mongoose';
-import { RewardRequest } from './reward-request.schema';
-import { Event } from '../event/event.schema';
-import { Reward } from '../reward/reward.schema';
-import { InviteService } from '../event-list/invite/invite.service';
 import { HttpService } from '@nestjs/axios';
+import { InviteService } from '../event-list/invite/invite.service';
 import { of } from 'rxjs';
 import { Types } from 'mongoose';
-import { BadRequestException } from '@nestjs/common';
 
 describe('RewardRequestService', () => {
   let service: RewardRequestService;
+  const userId = new Types.ObjectId().toHexString();
+  const eventId = new Types.ObjectId().toHexString();
 
-  // Mock 모델 및 서비스 정의
+  // 각종 의존성 Mock 객체 정의
   const mockRequestModel = {
     findOne: jest.fn(),
-    find: jest.fn(),
-    create: jest.fn(),
-    sort: jest.fn(),
+    find: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+    populate: jest.fn().mockReturnThis(),
     exec: jest.fn(),
-    prototype: { save: jest.fn() },
+    create: jest.fn(),
   };
 
   const mockEventModel = {
@@ -41,14 +37,14 @@ describe('RewardRequestService', () => {
     get: jest.fn(),
   };
 
-  // 테스트 환경 구성
+  // 테스트 모듈 설정
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RewardRequestService,
-        { provide: getModelToken(RewardRequest.name), useValue: mockRequestModel },
-        { provide: getModelToken(Event.name), useValue: mockEventModel },
-        { provide: getModelToken(Reward.name), useValue: mockRewardModel },
+        { provide: getModelToken('RewardRequest'), useValue: mockRequestModel },
+        { provide: getModelToken('Event'), useValue: mockEventModel },
+        { provide: getModelToken('Reward'), useValue: mockRewardModel },
         { provide: InviteService, useValue: mockInviteService },
         { provide: HttpService, useValue: mockHttpService },
       ],
@@ -57,88 +53,150 @@ describe('RewardRequestService', () => {
     service = module.get<RewardRequestService>(RewardRequestService);
   });
 
-  // 보상 조건 검증 로직 테스트
-  describe('validateCondition()', () => {
-    it('FIRST_LOGIN 조건은 무조건 true 반환', async () => {
-      const result = await service.validateCondition('user1', 'FIRST_LOGIN');
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('validateCondition', () => {
+    it('조건이 FIRST_LOGIN이면 true 반환', async () => {
+      const result = await service.validateCondition(userId, 'FIRST_LOGIN');
       expect(result).toBe(true);
     });
 
-    it('INVITE_THREE 조건: 초대한 친구 수가 3 이상이면 true', async () => {
+    it('3명 이상 초대한 경우 true 반환', async () => {
       mockInviteService.countInvites.mockResolvedValue(3);
-      const result = await service.validateCondition('user1', 'INVITE_THREE');
+      const result = await service.validateCondition(userId, 'INVITE_THREE');
       expect(result).toBe(true);
     });
 
-    it('LOGIN_THREE 조건: 고유 로그인 일수가 3 이상이면 true', async () => {
-      mockHttpService.get.mockReturnValue(of({ data: { totalUniqueDays: 3 } }));
-      const result = await service.validateCondition('user1', 'LOGIN_THREE');
+    it('LOGIN_THREE 조건 만족 시 true 반환', async () => {
+      mockHttpService.get.mockReturnValue(
+        of({ data: { totalUniqueDays: 4 } })
+      );
+      const result = await service.validateCondition(userId, 'LOGIN_THREE');
       expect(result).toBe(true);
     });
 
-    it('LOGIN_SEVEN_RECENT 조건: recent7DaysUnique가 7일 때 true', async () => {
-      mockHttpService.get.mockReturnValue(of({ data: { recent7DaysUnique: 7 } }));
-      const result = await service.validateCondition('user1', 'LOGIN_SEVEN_RECENT');
-      expect(result).toBe(true);
+    it('LOGIN_SEVEN_RECENT 조건 만족하지 않으면 false 반환', async () => {
+      mockHttpService.get.mockReturnValue(
+        of({ data: { recent7DaysUnique: 6 } })
+      );
+      const result = await service.validateCondition(userId, 'LOGIN_SEVEN_RECENT');
+      expect(result).toBe(false);
     });
 
-    it('등록되지 않은 조건은 false 반환', async () => {
-      const result = await service.validateCondition('user1', 'INVALID_CONDITION');
+    it('정의되지 않은 조건이면 false 반환', async () => {
+      const result = await service.validateCondition(userId, 'UNKNOWN');
       expect(result).toBe(false);
     });
   });
 
-  // 보상 요청 생성 로직 테스트
-  describe('createRequest()', () => {
-    it('이미 보상이 지급된 이벤트인 경우 예외 발생', async () => {
-      mockRequestModel.findOne.mockResolvedValue({ _id: '123', status: 'SUCCESS' });
-
-      await expect(service.createRequest('user1', 'event1')).rejects.toThrow(BadRequestException);
+  describe('createRequest', () => {
+    it('이미 SUCCESS 요청이 존재하면 예외 발생', async () => {
+      mockRequestModel.findOne.mockResolvedValue(true);
+      await expect(
+        service.createRequest(userId, eventId)
+      ).rejects.toThrow('이미 보상을 지급받은 이벤트입니다.');
     });
 
-    it('보상이 등록되지 않은 이벤트인 경우 예외 발생', async () => {
+    it('등록된 보상이 없으면 예외 발생', async () => {
       mockRequestModel.findOne.mockResolvedValue(null);
       mockRewardModel.find.mockResolvedValue([]);
-
-      await expect(service.createRequest('user1', 'event1')).rejects.toThrow('이벤트에 등록된 보상이 없습니다.');
+      await expect(
+        service.createRequest(userId, eventId)
+      ).rejects.toThrow('이벤트에 등록된 보상이 없습니다.');
     });
 
-    it('이벤트가 없거나 비활성화된 경우 예외 발생', async () => {
+    it('이벤트가 없거나 비활성화면 예외 발생', async () => {
       mockRequestModel.findOne.mockResolvedValue(null);
       mockRewardModel.find.mockResolvedValue([{}]);
-      mockEventModel.findById.mockResolvedValue({ isActive: false });
-
-      await expect(service.createRequest('user1', 'event1')).rejects.toThrow('존재하지 않거나 비활성화된 이벤트입니다.');
-    });
-
-    it('조건을 만족하지 못하면 FAILED 상태로 저장', async () => {
-      mockRequestModel.findOne.mockResolvedValue(null);
-      mockRewardModel.find.mockResolvedValue([{}]);
-      mockEventModel.findById.mockResolvedValue({ isActive: true, condition: 'LOGIN_THREE' });
-      mockHttpService.get.mockReturnValue(of({ data: { totalUniqueDays: 0 } })); // 조건 미충족
-
-      const saveMock = jest.fn();
-      (service as any).requestModel = function () {
-        return { save: saveMock };
-      };
-
-      await service.createRequest('user1', 'event1');
-      expect(saveMock).toHaveBeenCalled(); // 저장 시도 확인
+      mockEventModel.findById.mockResolvedValue(null);
+      await expect(
+        service.createRequest(userId, eventId)
+      ).rejects.toThrow('존재하지 않거나 비활성화된 이벤트입니다.');
     });
 
     it('조건을 만족하면 SUCCESS 상태로 저장', async () => {
       mockRequestModel.findOne.mockResolvedValue(null);
       mockRewardModel.find.mockResolvedValue([{}]);
-      mockEventModel.findById.mockResolvedValue({ isActive: true, condition: 'FIRST_LOGIN' });
+      mockEventModel.findById.mockResolvedValue({
+        isActive: true,
+        condition: 'FIRST_LOGIN',
+      });
 
       const saveMock = jest.fn();
-      (service as any).requestModel = function () {
-        return { save: saveMock };
-      };
 
-      const result = await service.createRequest('user1', 'event1');
-      expect(result.status).toBe('SUCCESS'); // 성공 상태 확인
+      // 동적으로 가짜 모델 인스턴스 생성
+      const mockModelFactory: any = Object.assign(
+        jest.fn().mockImplementation(() => ({ save: saveMock })),
+        {
+          findOne: jest.fn().mockResolvedValue(null),
+          find: jest.fn().mockReturnThis(),
+          populate: jest.fn().mockReturnThis(),
+          sort: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue([]),
+        }
+      );
+
+      (service as any).requestModel = mockModelFactory;
+
+      const result = await service.createRequest(userId, eventId);
+
+      expect(result.status).toBe('SUCCESS');
+      expect(result.message).toBe('보상이 지급되었습니다.');
+      expect(saveMock).toHaveBeenCalled();
+    });
+
+    it('조건을 만족하지 않으면 FAILED 상태로 저장', async () => {
+      mockRequestModel.findOne.mockResolvedValue(null);
+      mockRewardModel.find.mockResolvedValue([{}]);
+      mockEventModel.findById.mockResolvedValue({
+        isActive: true,
+        condition: 'UNKNOWN',
+      });
+
+      const saveMock = jest.fn();
+
+      const mockModelFactory: any = Object.assign(
+        jest.fn().mockImplementation(() => ({ save: saveMock })),
+        {
+          findOne: jest.fn().mockResolvedValue(null),
+          find: jest.fn().mockReturnThis(),
+          populate: jest.fn().mockReturnThis(),
+          sort: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue([]),
+        }
+      );
+
+      (service as any).requestModel = mockModelFactory;
+
+      const result = await service.createRequest(userId, eventId);
+      expect(result.status).toBe('FAILED');
+      expect(saveMock).toHaveBeenCalled();
     });
   });
 
+  describe('getAllRequests', () => {
+    it('전체 요청 목록 조회 시 유저 정보 포함 반환', async () => {
+      const dummyReq = {
+        toObject: () => ({ _id: 'abc', userId: userId }),
+      };
+      mockRequestModel.find().populate().sort().exec.mockResolvedValue([dummyReq]);
+      mockHttpService.get.mockReturnValue(of({ data: { username: 'testuser' } }));
+
+      const result = await service.getAllRequests();
+      expect(result[0].user.username).toBe('testuser');
+    });
+  });
+
+  describe('getRequestsByUser', () => {
+    it('특정 유저의 요청 목록만 반환', async () => {
+      const userId = new Types.ObjectId().toHexString();
+      const mockData = [{ _id: 'req1' }, { _id: 'req2' }];
+      mockRequestModel.find().populate().sort().exec.mockResolvedValue(mockData);
+
+      const result = await service.getRequestsByUser(userId);
+      expect(result).toHaveLength(2);
+    });
+  });
 });
