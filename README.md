@@ -37,6 +37,7 @@ docker-compose up --build
 
 <br>
 ## 🗃️ 폴더 구조
+
 ```bash
 .
 ├── auth-server/         # 사용자 등록, 로그인, JWT 발급
