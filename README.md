@@ -1,7 +1,8 @@
-# 🎮 이벤트 / 보상 관리 플랫폼 - 메이플스토리 퀘스트 기반
+# 🎮 이벤트 / 보상 관리 플랫폼
 
-NestJS 기반의 MSA 구조로 구성된 이벤트 / 보상 자동화 플랫폼입니다.  
-사용자는 이벤트 조건을 만족하면 직접 보상을 요청할 수 있고, 운영자는 조건 및 보상을 등록할 수 있으며, 감사자는 지급 내역만 조회할 수 있도록 설계되어 있습니다.
+NestJS 기반 MSA 아키텍처로 구현된 이벤트 보상 자동화 플랫폼입니다.
+사용자는 조건 충족 시 보상을 요청할 수 있고, 운영자는 조건과 보상을 설정하며,
+감사자는 지급 내역만 조회할 수 있도록 구성되어 있습니다.
 
 ---
 
@@ -17,8 +18,10 @@ cd event-reward-platform
 
 # 3. Docker Compose 실행
 docker-compose up --build
+```
 
-##⚙️ 개발 환경
+
+## ⚙️ 개발 환경
 
 - Node.js 18
 
@@ -31,17 +34,17 @@ docker-compose up --build
 - TypeScript
 
 - Jest (단위 테스트 일부 포함)
-```
 
 
 ## 🗃️ 폴더 구조
-
+```bash
 .
 ├── auth-server/         # 사용자 등록, 로그인, JWT 발급
 ├── event-server/        # 이벤트 생성, 조건 검증, 보상 관리
 ├── gateway-server/      # 인증 및 역할 기반 라우팅
 ├── docker-compose.yml   # 전체 서비스 실행 설정
 └── README.md            # 설명 문서
+```
 
 
 ## 🔐 사용자 역할
@@ -58,27 +61,28 @@ docker-compose up --build
 
 .env는 각 서버 폴더(auth-server, event-server, gateway-server) 안에 생성해주세요.
 
-#📁 auth-server/.env
-```bash
+# 📁 auth-server/.env
+```env
 MONGO_URL=mongodb://mongodb:27017/user-db
 PORT=3001
 JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 ```
 
 # 📁 event-server/.env
-```bash
+```env
 MONGO_URL=mongodb://mongodb:27017/event-db
 PORT=3002
 ```
 
 # 📁 gateway-server/.env
-```bash
+```env
 JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 AUTH_PORT=3001
 EVENT-PORT=3002
 ```
 
-# 📌 이벤트 설계
+
+## 📌 이벤트 설계
 
 | 이벤트 코드               | 설명               |
 | -------------------- | ---------------- |
@@ -87,7 +91,8 @@ EVENT-PORT=3002
 | LOGIN\_THREE         | 3일 이상 로그인 시 보상   |
 | LOGIN\_THREE\_RECENT | 최근 7일 중 3일 로그인 시 |
 
-# ✅ 조건 검증 방식
+
+## ✅ 조건 검증 방식
 
 - INVITE_THREE: 초대한 유저 수를 InviteService를 통해 확인
 
@@ -97,7 +102,8 @@ EVENT-PORT=3002
 
 - 조건 로직은 이벤트마다 switch 분기로 구성되어 있어 유연한 확장 가능
 
-# 📐 API 설계 및 구조 선택 이유
+
+## 📐 API 설계 및 구조 선택 이유
 
 - Gateway Server가 진입점이 되어 모든 요청에 대해 인증 및 역할 검증을 수행
 
@@ -107,7 +113,8 @@ EVENT-PORT=3002
 
 - 조건 검증 로직을 서비스 내에 일반화 가능하도록 설계해 확장성 고려
 
-# 🧪 테스트 시나리오 예시
+
+## 🧪 테스트 시나리오 예시
 
 - 유저가 로그인 3회를 달성한 후 보상을 요청하면 성공해야 한다.
 
@@ -119,7 +126,8 @@ EVENT-PORT=3002
 
 일부 단위 테스트는 auth-server/test, event-server/test에 포함
 
-# 💡 구현 중 고민 및 해결
+
+## 💡 구현 중 고민 및 해결
 
 - 조건 검증 로직 일반화: 조건을 코드(enum)로 구분하고, 내부 서비스에서 각 조건별 처리 메서드를 분기 처리함으로써 확장 가능한 구조로 설계
 
