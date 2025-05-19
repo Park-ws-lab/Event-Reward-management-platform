@@ -82,6 +82,7 @@ export class UserService {
         return {
             accessToken,
             refreshToken,
+            user
         };
     }
 

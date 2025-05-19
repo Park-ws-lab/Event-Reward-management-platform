@@ -7,7 +7,7 @@ import { Model, Types } from 'mongoose';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { NotFoundException } from '@nestjs/common';
-import { Event } from '../event/schemas/event.schema';
+import { Event,EventDocument } from '../event/schemas/event.schema';
 
 @Injectable()
 export class RewardService {
@@ -16,7 +16,7 @@ export class RewardService {
         @InjectModel(Reward.name) private rewardModel: Model<RewardDocument>,
 
         @InjectModel(Event.name)
-        private readonly eventModel: Model<Event>,
+        private readonly eventModel: Model<EventDocument>,
     ) { }
 
     // 보상 생성

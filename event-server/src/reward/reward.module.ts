@@ -5,11 +5,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Reward, RewardSchema } from './schemas/reward.schema';
 import { RewardService } from './reward.service';
 import { RewardController } from './reward.controller';
+import { EventModule } from '../event/event.module';
 
 @Module({
   imports: [
     // Reward 스키마를 Mongoose에 등록
     MongooseModule.forFeature([{ name: Reward.name, schema: RewardSchema }]),
+    EventModule
   ],
 
   // 보상 생성 및 조회 로직을 처리할 서비스
