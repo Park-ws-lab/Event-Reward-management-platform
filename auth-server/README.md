@@ -20,7 +20,7 @@ JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
 | ---- | -------------------------- | ------------ |
 | POST | /user/register             | 회원가입         |
 | POST | /user/login                | 로그인 + JWT 발급 |
-| GET  | /internal/login-count/\:id | 로그인 날짜 수 조회  |
+| GET  | /login-count/\:id | 로그인 날짜 수 조회  |
 
 
 ## 🧩 주요 특징

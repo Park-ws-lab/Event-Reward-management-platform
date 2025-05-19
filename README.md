@@ -63,26 +63,8 @@ docker-compose up --build
 ## 🧾 .env 설정 예시
 
 .env는 각 서버 폴더(auth-server, event-server, gateway-server) 안에 생성해주세요.
+각 폴더마다 .env 내용이 명시되어 있습니다.
 
-### 📁 auth-server/.env
-```env
-MONGO_URL=mongodb://mongodb:27017/user-db
-PORT=3001
-JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
-```
-
-### 📁 event-server/.env
-```env
-MONGO_URL=mongodb://mongodb:27017/event-db
-PORT=3002
-```
-
-### 📁 gateway-server/.env
-```env
-JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
-AUTH_PORT=3001
-EVENT-PORT=3002
-```
 <br>
 
 ## 📌 이벤트 설계
@@ -92,7 +74,7 @@ EVENT-PORT=3002
 | FIRST\_LOGIN         | 첫 로그인 시 보상       |
 | INVITE\_THREE        | 친구 3명 초대 시 보상    |
 | LOGIN\_THREE         | 3일 이상 로그인 시 보상   |
-| LOGIN\_THREE\_RECENT | 최근 7일 중 3일 로그인 시 |
+| LOGIN\_SEVEN\_RECENT | 최근 7일 연속 출석 체크 시 보상 |
 
 <br>
 
@@ -100,9 +82,9 @@ EVENT-PORT=3002
 
 - INVITE_THREE: 초대한 유저 수를 InviteService를 통해 확인
 
-- LOGIN_THREE, LOGIN_THREE_RECENT: Auth 서버의 login-log API 호출을 통해 총 로그인 날짜 수 및 최근 7일 로그인을 집계
+- LOGIN_THREE, LOGIN_SEVEN_RECENT: Auth 서버의 login-log API 호출을 통해 총 로그인 날짜 수 및 최근 7일 로그인을 집계
 
-- FIRST_LOGIN: 해당 유저의 첫 로그인 여부를 내부 기록으로 확인
+- FIRST_LOGIN: 해당 유저의 첫 로그인 여부를 로그인 기록으로 확인
 
 - 조건 로직은 이벤트마다 switch 분기로 구성되어 있어 유연한 확장 가능
 
