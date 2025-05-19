@@ -358,7 +358,7 @@ Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
 - **URL:** `http://localhost:3000/rewards/<보상ID>`
 
 **Headers:**
-Authorization: Bearer <ADMIN JWT>
+Authorization: Bearer < ADMIN JWT >
 
 **Body (JSON):**
 ```json
@@ -380,7 +380,7 @@ Authorization: Bearer <ADMIN JWT>
 - **URL:** `http://localhost:3000/rewards/<보상ID>`
 
 **Headers:**
-Authorization: Bearer <ADMIN JWT>
+Authorization: Bearer < ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 삭제 성공
@@ -435,7 +435,7 @@ Authorization: Bearer <OPERATOR, AUDITOR, ADMIN JWT>
 - **URL:** `http://localhost:3000/reward-requests/user/<유저ID>`
 
 **Headers:**
-Authorization: Bearer <ADMIN JWT>
+Authorization: Bearer < ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 유저 요청 목록 반환
@@ -452,7 +452,7 @@ Authorization: Bearer <ADMIN JWT>
 - **URL:** `http://localhost:3000/invites`
 
 **Headers:**
-Authorization: Bearer <USER 또는 ADMIN JWT>
+Authorization: Bearer < USER 또는 ADMIN JWT >
 
 **Body (JSON):**
 ```json
