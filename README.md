@@ -173,7 +173,7 @@ NestJS 기반 Auth Server를 대상으로 한 Postman 테스트 시나리오입�
 - **URL:** `http://localhost:3000/user/logout`
 
 **Headers:**
-Authorization: Bearer <JWT 토큰>
+Authorization: Bearer <JWT>
 
 **Body (JSON):**
 ```json
@@ -194,7 +194,7 @@ Authorization: Bearer <JWT 토큰>
 - **URL:** `http://localhost:3000/user/updateUserRole/<유저ID>`
 
 **Headers:**
-Authorization: Bearer <관리자 JWT 토큰>
+Authorization: Bearer <ADMIN JWT>
 
 **Body (JSON):**
 ```json
@@ -435,7 +435,7 @@ Authorization: Bearer <OPERATOR, AUDITOR, ADMIN JWT>
 - **URL:** `http://localhost:3000/reward-requests/user/<유저ID>`
 
 **Headers:**
-Authorization: Bearer <USER 또는 ADMIN JWT>
+Authorization: Bearer <ADMIN JWT>
 
 **응답 코드:**
 - ✅ 200 OK – 유저 요청 목록 반환
@@ -444,7 +444,7 @@ Authorization: Bearer <USER 또는 ADMIN JWT>
 ---
 
 
-## 📮 Invite API 테스트 시나리오 (게이트웨이 기준 권한 적용)
+## 📮 Invite API
 
 ### ✅ 친구 초대 요청
 
