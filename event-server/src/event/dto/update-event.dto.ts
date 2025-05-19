@@ -1,6 +1,5 @@
-// dto/update-event.dto.ts
-
 import { IsOptional, IsString, IsBoolean, IsDateString, IsIn } from 'class-validator';
+import { EVENT_CONDITIONS, EventCondition } from '../../common/enums/event-condition.enum';
 
 export class UpdateEventDto {
   @IsOptional()
@@ -12,8 +11,8 @@ export class UpdateEventDto {
   description?: string;
 
   @IsOptional()
-  @IsIn(['FIRST_LOGIN', 'INVITE_THREE', 'LOGIN_THREE', 'LOGIN_SEVEN_RECENT'])
-  condition?: 'FIRST_LOGIN' | 'INVITE_THREE' | 'LOGIN_THREE' | 'LOGIN_SEVEN_RECENT';
+  @IsIn(EVENT_CONDITIONS)
+  condition?: EventCondition;
 
   @IsOptional()
   @IsDateString()

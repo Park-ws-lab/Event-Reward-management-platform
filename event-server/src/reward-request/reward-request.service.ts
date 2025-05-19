@@ -4,8 +4,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel, } from '@nestjs/mongoose';
 import { RewardRequest } from './schemas/reward-request.schema';
 import { Model, Types } from 'mongoose';
-import { Event } from '../event/schemas/event.schema';
-import { Reward } from '../reward/schemas/reward.schema';
+import { Event, EventDocument } from '../event/schemas/event.schema';
+import { Reward, RewardDocument } from '../reward/schemas/reward.schema';
 import { InviteService } from '../event-list/invite/invite.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -19,11 +19,11 @@ export class RewardRequestService {
 
     // 이벤트 모델
     @InjectModel(Event.name)
-    private readonly eventModel: Model<Event>,
+    private readonly eventModel: Model<EventDocument>,
 
     // 보상 모델
     @InjectModel(Reward.name)
-    private readonly rewardModel: Model<Reward>,
+    private readonly rewardModel: Model<RewardDocument>,
 
     // 초대 수 검증을 위한 서비스
     private readonly inviteService: InviteService,
@@ -67,6 +67,17 @@ export class RewardRequestService {
         }
       }
 
+      // 로그인 횟수 기반 조건 검사
+      case 'DAILY_LOGIN': {
+        const { data } = await firstValueFrom(
+          this.httpService.get(`http://auth-server:${process.env.AUTH_PORT}/user/login-count/${userId}`)
+        );
+
+        // 오늘 하루에만 로그인했는지 확인
+        const today = new Date().toISOString().slice(0, 10);
+        return data.loggedDates?.includes(today);
+      }
+
       // 등록되지 않은 조건일 경우 무조건 실패 처리
       default:
         return false;
@@ -75,34 +86,52 @@ export class RewardRequestService {
 
   // 보상 요청 생성 로직
   async createRequest(userId: string, eventId: string) {
-    // 이미 보상을 지급받은 이벤트인지 확인
-    const existing = await this.requestModel.findOne({
-      userId: new Types.ObjectId(userId),
-      event: new Types.ObjectId(eventId),
-      status: 'SUCCESS',
-    });
-    if (existing) {
-      throw new BadRequestException('이미 보상을 지급받은 이벤트입니다.');
+    // 이벤트 정보 조회 (존재 여부 + 활성 상태 확인 포함)
+    const event = await this.eventModel.findById(eventId);
+    if (!event || !event.isActive) {
+      throw new BadRequestException('존재하지 않거나 비활성화된 이벤트입니다.');
     }
 
-    // 보상이 존재하는지 확인
-    const rewards = await this.rewardModel.find({ event: eventId });
+    // 중복 보상 방지
+    if (event.condition === 'DAILY_LOGIN') {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
 
+      const todayReward = await this.requestModel.findOne({
+        userId: new Types.ObjectId(userId),
+        eventId: new Types.ObjectId(eventId),
+        status: 'SUCCESS',
+        createdAt: { $gte: start, $lte: end },
+      });
+
+      if (todayReward) {
+        throw new BadRequestException('오늘 이미 보상을 지급받았습니다.');
+      }
+    } else {
+      const existing = await this.requestModel.findOne({
+        userId: new Types.ObjectId(userId),
+        eventId: new Types.ObjectId(eventId),
+        status: 'SUCCESS',
+      });
+
+      if (existing) {
+        throw new BadRequestException('이미 보상을 지급받은 이벤트입니다.');
+      }
+    }
+
+    // 보상 존재 여부 확인
+    const rewards = await this.rewardModel.find({ event: eventId });
     if (rewards.length === 0) {
       throw new BadRequestException('이벤트에 등록된 보상이 없습니다.');
-    }
-
-    // 이벤트 유효성 검사 (존재 여부 + 활성 상태)
-    const event = await this.eventModel.findById(eventId);
-    if (!event || event.isActive !== true) {
-      throw new BadRequestException('존재하지 않거나 비활성화된 이벤트입니다.');
     }
 
     // 조건 충족 여부 판단
     const isEligible = await this.validateCondition(userId, event.condition);
     const status = isEligible ? 'SUCCESS' : 'FAILED';
 
-    // 보상 요청 생성 및 저장
+    // 요청 생성
     const request = new this.requestModel({
       userId: new Types.ObjectId(userId),
       event: new Types.ObjectId(eventId),
@@ -110,7 +139,7 @@ export class RewardRequestService {
     });
     await request.save();
 
-    // 보상 내용 저장
+    // 조건 충족 시 리워드 정보 포함
     const rewardList = isEligible
       ? rewards.map((r) => ({
         type: r.type,
@@ -119,7 +148,6 @@ export class RewardRequestService {
       }))
       : undefined;
 
-    // 결과 메시지 및 상태 반환
     return {
       message: isEligible
         ? '보상이 지급되었습니다.'
@@ -128,6 +156,7 @@ export class RewardRequestService {
       ...(isEligible && { rewards: rewardList }),
     };
   }
+
 
   // 전체 보상 요청 목록 조회 (eventId 또는 status로 필터링 가능)
   async getAllRequests(filters: { eventId?: string; status?: string }) {

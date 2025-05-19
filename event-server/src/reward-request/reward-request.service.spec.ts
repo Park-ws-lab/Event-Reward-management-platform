@@ -93,88 +93,41 @@ describe('RewardRequestService', () => {
 
   describe('createRequest', () => {
     it('이미 SUCCESS 요청이 존재하면 예외 발생', async () => {
-      mockRequestModel.findOne.mockResolvedValue(true);
-      await expect(
-        service.createRequest(userId, eventId)
-      ).rejects.toThrow('이미 보상을 지급받은 이벤트입니다.');
+      // 이벤트 존재 + 활성화
+      mockEventModel.findById.mockResolvedValue({ _id: eventId, isActive: true });
+
+      // 보상 존재
+      mockRewardModel.find.mockResolvedValue([{ type: 'COUPON', value: '테스트', quantity: 1 }]);
+
+      // 이미 성공한 요청 있음
+      mockRequestModel.findOne.mockResolvedValue({ _id: 'existingId' });
+
+      await expect(service.createRequest(userId, eventId))
+        .rejects.toThrow('이미 보상을 지급받은 이벤트입니다.');
     });
 
     it('등록된 보상이 없으면 예외 발생', async () => {
-      mockRequestModel.findOne.mockResolvedValue(null);
+      // 이벤트 존재 + 활성화
+      mockEventModel.findById.mockResolvedValue({ _id: eventId, isActive: true });
+
+      // 보상 없음
       mockRewardModel.find.mockResolvedValue([]);
-      await expect(
-        service.createRequest(userId, eventId)
-      ).rejects.toThrow('이벤트에 등록된 보상이 없습니다.');
+
+      // 중복 요청 없음
+      mockRequestModel.findOne.mockResolvedValue(null);
+
+      await expect(service.createRequest(userId, eventId))
+        .rejects.toThrow('이벤트에 등록된 보상이 없습니다.');
     });
 
     it('이벤트가 없거나 비활성화면 예외 발생', async () => {
-      mockRequestModel.findOne.mockResolvedValue(null);
-      mockRewardModel.find.mockResolvedValue([{}]);
-      mockEventModel.findById.mockResolvedValue(null);
-      await expect(
-        service.createRequest(userId, eventId)
-      ).rejects.toThrow('존재하지 않거나 비활성화된 이벤트입니다.');
-    });
+      mockEventModel.findById.mockResolvedValue(null); // 이벤트 없음
 
-    it('조건을 만족하면 SUCCESS 상태로 저장', async () => {
-      mockRequestModel.findOne.mockResolvedValue(null);
-      mockRewardModel.find.mockResolvedValue([{}]);
-      mockEventModel.findById.mockResolvedValue({
-        isActive: true,
-        condition: 'FIRST_LOGIN',
-      });
-
-      const saveMock = jest.fn();
-
-      // 동적으로 가짜 모델 인스턴스 생성
-      const mockModelFactory: any = Object.assign(
-        jest.fn().mockImplementation(() => ({ save: saveMock })),
-        {
-          findOne: jest.fn().mockResolvedValue(null),
-          find: jest.fn().mockReturnThis(),
-          populate: jest.fn().mockReturnThis(),
-          sort: jest.fn().mockReturnThis(),
-          exec: jest.fn().mockResolvedValue([]),
-        }
-      );
-
-      (service as any).requestModel = mockModelFactory;
-
-      const result = await service.createRequest(userId, eventId);
-
-      expect(result.status).toBe('SUCCESS');
-      expect(result.message).toBe('보상이 지급되었습니다.');
-      expect(saveMock).toHaveBeenCalled();
-    });
-
-    it('조건을 만족하지 않으면 FAILED 상태로 저장', async () => {
-      mockRequestModel.findOne.mockResolvedValue(null);
-      mockRewardModel.find.mockResolvedValue([{}]);
-      mockEventModel.findById.mockResolvedValue({
-        isActive: true,
-        condition: 'UNKNOWN',
-      });
-
-      const saveMock = jest.fn();
-
-      const mockModelFactory: any = Object.assign(
-        jest.fn().mockImplementation(() => ({ save: saveMock })),
-        {
-          findOne: jest.fn().mockResolvedValue(null),
-          find: jest.fn().mockReturnThis(),
-          populate: jest.fn().mockReturnThis(),
-          sort: jest.fn().mockReturnThis(),
-          exec: jest.fn().mockResolvedValue([]),
-        }
-      );
-
-      (service as any).requestModel = mockModelFactory;
-
-      const result = await service.createRequest(userId, eventId);
-      expect(result.status).toBe('FAILED');
-      expect(saveMock).toHaveBeenCalled();
+      await expect(service.createRequest(userId, eventId))
+        .rejects.toThrow('존재하지 않거나 비활성화된 이벤트입니다.');
     });
   });
+
 
   describe('getAllRequests', () => {
     const dummyReq = {

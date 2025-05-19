@@ -5,6 +5,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { EventService } from './event.service';
 import { Event } from './schemas/event.schema';
 import { CreateEventDto } from './dto/create-event.dto';
+import { EventCondition } from '../common/enums/event-condition.enum';
 
 describe('EventService', () => {
   let service: EventService;
@@ -34,7 +35,7 @@ describe('EventService', () => {
       const dto = {
         title: '출석 이벤트',
         description: '3회 출석 시 보상',
-        condition: 'LOGIN_THREE',
+        condition: 'LOGIN_THREE' as EventCondition,
         startDate:new Date('2025-05-01T00:00:00.000Z'),
         endDate:new Date('2025-05-31T23:59:59.999Z'),
         isActive: true,

@@ -1,11 +1,12 @@
 // dto/update-reward.dto.ts
 
 import { IsOptional, IsString, IsEnum, IsInt, Min } from 'class-validator';
+import { REWARD_CONDITIONS, RewardCondition } from '../../common/enums/reward-condition.enum';
 
 export class UpdateRewardDto {
   @IsOptional()
-  @IsEnum(['ITEM', 'POINT', 'COUPON', 'CURRENCY'])
-  type?: 'ITEM' | 'POINT' | 'COUPON' | 'CURRENCY';
+  @IsEnum(REWARD_CONDITIONS)
+  type?: RewardCondition;
 
   @IsOptional()
   @IsString()

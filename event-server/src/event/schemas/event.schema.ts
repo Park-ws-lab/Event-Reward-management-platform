@@ -2,6 +2,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { EventCondition, EVENT_CONDITIONS } from '../../common/enums/event-condition.enum';
 
 // Event 모델에 Mongo 문서 관련 기능을 합친 타입
 export type EventDocument = Event & Document;
@@ -21,8 +22,8 @@ export class Event {
   description: string;
 
   // 이벤트 조건 (FIRST_LOGIN, )
-  @Prop({ required: true, enum: ['FIRST_LOGIN', 'INVITE_THREE', 'LOGIN_THREE', 'LOGIN_SEVEN_RECENT'] })
-  condition: 'FIRST_LOGIN' | 'INVITE_THREE' | 'LOGIN_THREE' | 'LOGIN_SEVEN_RECENT';;
+  @Prop({ required: true, enum: EVENT_CONDITIONS })
+  condition: EventCondition;
 
   // 이벤트 시작 날짜
   @Prop({ required: true })

@@ -75,6 +75,7 @@ docker-compose up --build
 | INVITE\_THREE        | 친구 3명 초대 시 보상    |
 | LOGIN\_THREE         | 3일 이상 로그인 시 보상   |
 | LOGIN\_SEVEN\_RECENT | 최근 7일 연속 출석 체크 시 보상 |
+| DAILY\_LOGIN | 매일 출석 시 보상 |
 
 <br>
 
@@ -82,7 +83,7 @@ docker-compose up --build
 
 - INVITE_THREE: 초대한 유저 수를 InviteService를 통해 확인
 
-- LOGIN_THREE, LOGIN_SEVEN_RECENT: Auth 서버의 login-log API 호출을 통해 총 로그인 날짜 수 및 최근 7일 로그인을 집계
+- LOGIN_THREE, LOGIN_SEVEN_RECENT, DAILY_LOGIN: Auth 서버의 login-log API 호출을 통해 총 로그인 날짜 수 및 최근 7일 로그인을 집계
 
 - FIRST_LOGIN: 해당 유저의 첫 로그인 여부를 로그인 기록으로 확인
 

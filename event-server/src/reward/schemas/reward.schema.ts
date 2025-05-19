@@ -3,6 +3,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
 import { Event } from '../../event/schemas/event.schema';
+import { REWARD_CONDITIONS, RewardCondition } from '../../common/enums/reward-condition.enum';
 
 // Reward 모델에 Mongo 문서 관련 기능을 합친 타입
 export type RewardDocument = Reward & Document;
@@ -11,11 +12,11 @@ export type RewardDocument = Reward & Document;
 export class Reward {
     // 연결된 이벤트의 ID (참조: Event 컬렉션)
     @Prop({ type: Types.ObjectId, ref: Event.name, required: true })
-    event: Types.ObjectId;
+    eventId: Types.ObjectId;
 
     // 보상 유형 ('ITEM', 'POINT', 'COUPON', 'CURRENCY')
-    @Prop({ required: true, enum: ['ITEM', 'POINT', 'COUPON', 'CURRENCY'] })
-    type: 'ITEM' | 'POINT' | 'COUPON' | 'CURRENCY';
+    @Prop({ required: true, enum: REWARD_CONDITIONS })
+    type: RewardCondition;
 
     // 보상 내용 (예: 포인트나 재화의 양 등)
     @Prop({ required: true })
