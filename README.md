@@ -120,7 +120,32 @@ EVENT-PORT=3002
 
 <br>
 
-## 🧪 테스트 시나리오 예시
+## 🧪 주요 API 및 테스트 시나리오
+
+<br>
+
+## 📌 주요 API 접근 권한 정리
+
+| 구분         | Method | Endpoint                                         | 설명                          | 접근 가능 권한                        |
+|--------------|--------|--------------------------------------------------|-------------------------------|----------------------------------------|
+| **유저**     | POST   | `/user/register`                                 | 회원가입                       | 모두 가능                             |
+|              | POST   | `/user/login`                                    | 로그인                         | 모두 가능                             |
+|              | POST   | `/user/logout`                                   | 로그아웃                       | USER, ADMIN                           |
+|              | PATCH  | `/user/updateUserRole/:id`                       | 유저 권한 변경                 | ADMIN                                 |
+|              | GET    | `/user/:id`                                      | 유저 정보 조회                 | ADMIN (또는 내부용)                  |
+| **이벤트**   | POST   | `/events`                                        | 이벤트 등록                    | OPERATOR, ADMIN                       |
+|              | GET    | `/events`                                        | 이벤트 목록 조회               | OPERATOR, ADMIN                       |
+|              | GET    | `/events/titles`                                 | 이벤트 제목 목록 조회          | OPERATOR, ADMIN                       |
+|              | PATCH  | `/events/:id`                                    | 이벤트 수정                    | ADMIN                                 |
+|              | DELETE | `/events/:id`                                    | 이벤트 삭제                    | ADMIN                                 |
+| **보상**     | POST   | `/rewards`                                       | 보상 등록                      | OPERATOR, ADMIN                       |
+|              | GET    | `/rewards`                                       | 보상 목록 조회                 | OPERATOR, ADMIN                       |
+|              | PATCH  | `/rewards/:id`                                   | 보상 수정                      | ADMIN                                 |
+|              | DELETE | `/rewards/:id`                                   | 보상 삭제                      | ADMIN                                 |
+| **보상요청** | POST   | `/reward-requests`                               | 보상 요청                      | USER, ADMIN                           |
+|              | GET    | `/reward-requests`                               | 전체 요청 목록 (필터 포함)     | OPERATOR, AUDITOR, ADMIN             |
+|              | GET    | `/reward-requests/user/:userId`                 | 유저의 요청 이력               | USER, ADMIN                           |
+| **초대**     | POST   | `/invites`                                       | 친구 초대 요청                 | USER, ADMIN                           |
 
 <br>
 
@@ -173,7 +198,7 @@ NestJS 기반 Auth Server를 대상으로 한 Postman 테스트 시나리오입�
 - **URL:** `http://localhost:3000/user/logout`
 
 **Headers:**
-Authorization: Bearer <JWT>
+Authorization: Bearer < JWT >
 
 **Body (JSON):**
 ```json
@@ -194,7 +219,7 @@ Authorization: Bearer <JWT>
 - **URL:** `http://localhost:3000/user/updateUserRole/<유저ID>`
 
 **Headers:**
-Authorization: Bearer <ADMIN JWT>
+Authorization: Bearer < ADMIN JWT >
 
 **Body (JSON):**
 ```json
@@ -210,7 +235,7 @@ Authorization: Bearer <ADMIN JWT>
 - `404 Not Found` – 유저 없음
 
 ---
-
+<br>
 
 ## 📮 Event API 테스트 시나리오
 
@@ -224,7 +249,7 @@ Authorization: Bearer <ADMIN JWT>
 - **URL:** `http://localhost:3000/events`
 
 **Headers:**
-Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
+Authorization: Bearer < OPERATOR 또는 ADMIN JWT >
 
 **Body (JSON):**
 ```json
@@ -251,7 +276,7 @@ Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
 - **URL:** `http://localhost:3000/events`
 
 **Headers:**
-Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
+Authorization: Bearer < OPERATOR 또는 ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 이벤트 목록 반환
@@ -265,7 +290,7 @@ Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
 - **URL:** `http://localhost:3000/events/titles`
 
 **Headers:**
-Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
+Authorization: Bearer < OPERATOR 또는 ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 이벤트 제목 배열 반환
@@ -279,7 +304,7 @@ Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
 - **URL:** `http://localhost:3000/events/<이벤트ID>`
 
 **Headers:**
-Authorization: Bearer <ADMIN JWT>
+Authorization: Bearer < ADMIN JWT >
 
 **Body (JSON):**
 ```json
@@ -302,7 +327,7 @@ Authorization: Bearer <ADMIN JWT>
 - **URL:** `http://localhost:3000/events/<이벤트ID>`
 
 **Headers:**
-Authorization: Bearer <ADMIN JWT>
+Authorization: Bearer < ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 삭제 성공
@@ -310,6 +335,8 @@ Authorization: Bearer <ADMIN JWT>
 - ❌ 404 Not Found – 존재하지 않는 이벤트 ID
 
 ---
+
+<br>
 
 ## 📮 Reward API 테스트 시나리오
 
@@ -319,7 +346,7 @@ Authorization: Bearer <ADMIN JWT>
 - **URL:** `http://localhost:3000/rewards`
 
 **Headers:**
-Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
+Authorization: Bearer < OPERATOR 또는 ADMIN JWT >
 
 **Body (JSON):**
 ```json
@@ -344,7 +371,7 @@ Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
 - **URL:** `http://localhost:3000/rewards`
 
 **Headers:**
-Authorization: Bearer <OPERATOR 또는 ADMIN JWT>
+Authorization: Bearer < OPERATOR 또는 ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 보상 목록 반환
@@ -389,8 +416,9 @@ Authorization: Bearer < ADMIN JWT >
 
 ---
 
+<br>
 
-## 📮 Reward Request API 테스트 시나리오 (게이트웨이 기준 권한 적용)
+## 📮 Reward Request API 테스트 시나리오
 
 ### ✅ 1. 보상 요청 생성
 
@@ -398,7 +426,7 @@ Authorization: Bearer < ADMIN JWT >
 - **URL:** `http://localhost:3000/reward-requests`
 
 **Headers:**
-Authorization: Bearer <USER 또는 ADMIN JWT>
+Authorization: Bearer < USER 또는 ADMIN JWT >
 
 **Body (JSON):**
 ```json
@@ -421,7 +449,7 @@ Authorization: Bearer <USER 또는 ADMIN JWT>
 - **URL:** `http://localhost:3000/reward-requests?eventId=<이벤트ID>&status=SUCCESS`
 
 **Headers:**
-Authorization: Bearer <OPERATOR, AUDITOR, ADMIN JWT>
+Authorization: Bearer < OPERATOR, AUDITOR, ADMIN JWT >
 
 **응답 코드:**
 - ✅ 200 OK – 필터된 요청 목록 반환
@@ -443,6 +471,7 @@ Authorization: Bearer < ADMIN JWT >
 
 ---
 
+<br>
 
 ## 📮 Invite API
 
