@@ -21,6 +21,8 @@ services:
       - ./event-server/.env
     depends_on:
       - mongo
+      - auth-server
+
     networks:
       - backend
 

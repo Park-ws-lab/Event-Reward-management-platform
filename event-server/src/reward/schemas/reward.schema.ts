@@ -12,7 +12,7 @@ export type RewardDocument = Reward & Document;
 export class Reward {
     // 연결된 이벤트의 ID (참조: Event 컬렉션)
     @Prop({ type: Types.ObjectId, ref: Event.name, required: true })
-    eventId: Types.ObjectId;
+    event: Event;
 
     // 보상 유형 ('ITEM', 'POINT', 'COUPON', 'CURRENCY')
     @Prop({ required: true, enum: REWARD_CONDITIONS })

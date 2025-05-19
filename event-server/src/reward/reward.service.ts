@@ -7,7 +7,7 @@ import { Model, Types } from 'mongoose';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { NotFoundException } from '@nestjs/common';
-import { Event,EventDocument } from '../event/schemas/event.schema';
+import { Event, EventDocument } from '../event/schemas/event.schema';
 
 @Injectable()
 export class RewardService {
@@ -36,11 +36,13 @@ export class RewardService {
 
         // 3. 보상 생성
         const reward = new this.rewardModel({
-            event: new Types.ObjectId(eventId),
-            ...rest,
+            event: dto.eventId, // ← 이렇게 매핑되고 있는지
+            type: dto.type,
+            value: dto.value,
+            quantity: dto.quantity,
         });
 
-        return reward.save(); // DB에 저장
+        return reward.save();
     }
 
     // 전체 보상 목록 조회 (이벤트 정보도 함께 조회)

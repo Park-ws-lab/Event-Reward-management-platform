@@ -102,8 +102,6 @@ export class UserController {
     return { message: '유저가 성공적으로 삭제되었습니다.' };
   }
 
-
-  // 여기부터는 내부 API
   // [GET] /user/login-count/:userId - 특정 유저 전체 및 최근 7일 이내 로그인 횟수 조회 API
   @Get('/login-count/:userId')
   async getLoginCount(@Param('userId') userId: string) {

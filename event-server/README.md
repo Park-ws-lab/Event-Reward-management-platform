@@ -19,6 +19,7 @@
 ```env
 MONGO_URL=mongodb://mongodb:27017/event-db
 PORT=3002
+AUTH_PORT=3001
 ```
 
 
