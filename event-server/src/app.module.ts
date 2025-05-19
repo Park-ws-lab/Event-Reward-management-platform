@@ -1,8 +1,6 @@
 // 애플리케이션의 최상위 모듈 (전역 설정 및 핵심 모듈 구성)
 
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventModule } from './event/event.module';
@@ -28,12 +26,8 @@ import { InviteModule } from './event-list/invite/invite.module';
     InviteModule,
   ],
 
-  // 루트 컨트롤러 등록 (기본 라우팅용)
-  controllers: [
-    AppController,
-  ],
+  controllers: [],
 
-  // 루트 서비스 등록 (기본 비즈니스 로직 처리)
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}

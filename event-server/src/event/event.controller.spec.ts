@@ -3,7 +3,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventController } from './event.controller';
 import { EventService } from './event.service';
+import { NotFoundException } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 describe('EventController', () => {
   let controller: EventController;
@@ -15,6 +17,8 @@ describe('EventController', () => {
       createEvent: jest.fn(),
       getAllEvents: jest.fn(),
       getAllTitles: jest.fn(),
+      updateEventOrFail: jest.fn(),
+      deleteEventOrFail: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -87,4 +91,59 @@ describe('EventController', () => {
       expect(result).toEqual(titles);
     });
   });
+
+  // 이벤트 수정 테스트
+  describe('update()', () => {
+    it('이벤트 수정 성공 시 응답 메시지를 반환해야 함', async () => {
+      const eventId = '123';
+      const dto: UpdateEventDto = { title: 'Updated Event' };
+      const mockEvent = { _id: eventId, title: 'Updated Event' };
+
+      mockEventService.updateEventOrFail.mockResolvedValue({
+        message: '이벤트가 수정되었습니다.',
+        event: mockEvent,
+      });
+
+      const result = await controller.update(eventId, dto);
+
+      expect(result).toEqual({
+        message: '이벤트가 수정되었습니다.',
+        event: mockEvent,
+      });
+      expect(mockEventService.updateEventOrFail).toHaveBeenCalledWith(eventId, dto);
+    });
+
+    it('이벤트가 존재하지 않을 경우 NotFoundException을 던져야 함', async () => {
+      mockEventService.updateEventOrFail.mockImplementation(() => {
+        throw new NotFoundException('해당 이벤트를 찾을 수 없습니다.');
+      });
+
+      await expect(
+        controller.update('notfound', { title: 'X' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // 이벤트 삭제 테스트
+  describe('delete()', () => {
+    it('이벤트 삭제 성공 시 메시지를 반환해야 함', async () => {
+      mockEventService.deleteEventOrFail.mockResolvedValue({
+        message: '이벤트가 삭제되었습니다.',
+      });
+
+      const result = await controller.delete('123');
+
+      expect(result).toEqual({ message: '이벤트가 삭제되었습니다.' });
+      expect(mockEventService.deleteEventOrFail).toHaveBeenCalledWith('123');
+    });
+
+    it('삭제 실패 시 NotFoundException을 던져야 함', async () => {
+      mockEventService.deleteEventOrFail.mockImplementation(() => {
+        throw new NotFoundException('삭제 실패');
+      });
+
+      await expect(controller.delete('notfound')).rejects.toThrow(NotFoundException);
+    });
+  });
+
 });

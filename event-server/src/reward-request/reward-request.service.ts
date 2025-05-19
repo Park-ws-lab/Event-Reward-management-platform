@@ -2,10 +2,10 @@
 
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel, } from '@nestjs/mongoose';
-import { RewardRequest } from './reward-request.schema';
+import { RewardRequest } from './schemas/reward-request.schema';
 import { Model, Types } from 'mongoose';
-import { Event } from '../event/event.schema';
-import { Reward } from '../reward/reward.schema';
+import { Event } from '../event/schemas/event.schema';
+import { Reward } from '../reward/schemas/reward.schema';
 import { InviteService } from '../event-list/invite/invite.service';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -129,15 +129,25 @@ export class RewardRequestService {
     };
   }
 
-  // 전체 보상 요청 목록 조회 (유저 + 이벤트 정보 포함)
-  async getAllRequests() {
+  // 전체 보상 요청 목록 조회 (eventId 또는 status로 필터링 가능)
+  async getAllRequests(filters: { eventId?: string; status?: string }) {
+    const query: any = {};
+
+    // 필터 조건 설정
+    if (filters.eventId) {
+      query.event = new Types.ObjectId(filters.eventId);
+    }
+    if (filters.status) {
+      query.status = filters.status;
+    }
+
     const requests = await this.requestModel
-      .find()
-      .populate('event') // 이벤트 정보는 같은 DB 스키마에서 참조 가능
+      .find(query)
+      .populate('event')
       .sort({ createdAt: -1 })
       .exec();
 
-    // 내부 API로 각 유저 정보 병렬 요청
+    // 유저 정보 병렬 요청
     const results = await Promise.all(
       requests.map(async (req) => {
         let user = null;
@@ -152,13 +162,14 @@ export class RewardRequestService {
 
         return {
           ...req.toObject(),
-          user, // 유저 정보 포함
+          user,
         };
       })
     );
 
     return results;
   }
+
 
   // 특정 유저가 요청한 보상 내역 조회 (이벤트 정보 포함)
   async getRequestsByUser(userId: string) {

@@ -2,7 +2,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Invite } from './invite.schema';
+import { Invite } from './schemas/invite.schema';
 import { Model, Types } from 'mongoose';
 
 @Injectable()

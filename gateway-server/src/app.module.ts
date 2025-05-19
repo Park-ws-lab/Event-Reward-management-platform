@@ -1,7 +1,5 @@
 // 게이트웨이 서버의 루트 모듈
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { HttpModule } from '@nestjs/axios';
@@ -27,13 +25,11 @@ import { InviteProxyModule } from './invite-proxy/invite-proxy.module';
     InviteProxyModule,
   ],
 
-  // 기본 라우트 컨트롤러 등록
-  controllers: [AppController],
+  controllers: [],
 
-  // JWT 전략 및 공통 서비스 등록
+  // JWT 전략 등록
   providers: [
-    JwtStrategy,
-    AppService,
+    JwtStrategy
   ],
 })
-export class AppModule {}
+export class AppModule { }

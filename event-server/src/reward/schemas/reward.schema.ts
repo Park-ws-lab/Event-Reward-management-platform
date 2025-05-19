@@ -2,7 +2,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
-import { Event } from '../event/event.schema';
+import { Event } from '../../event/schemas/event.schema';
 
 // Reward 모델에 Mongo 문서 관련 기능을 합친 타입
 export type RewardDocument = Reward & Document;

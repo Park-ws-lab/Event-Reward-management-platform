@@ -3,7 +3,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { EventService } from './event.service';
-import { Event } from './event.schema';
+import { Event } from './schemas/event.schema';
 import { CreateEventDto } from './dto/create-event.dto';
 
 describe('EventService', () => {

@@ -1,2 +1,14 @@
+# 빌드 후 필요 없는 로컬 파일들
 node_modules
 dist
+coverage
+test/
+**/*.spec.ts
+
+# 에디터/OS 관련 불필요 파일
+.env
+*.log
+*.tsbuildinfo
+.DS_Store
+.idea
+.vscode

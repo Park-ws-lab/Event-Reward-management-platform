@@ -6,6 +6,8 @@ import {
   Res,
   Post,
   Get,
+  Patch,
+  Delete,
   UseGuards,
 } from '@nestjs/common';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
@@ -30,6 +32,21 @@ export class RewardsProxyController {
   async getRewards(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
     return this.proxy(req, res);
   }
+
+  // [PATCH] /rewards/:id - 보상 수정
+  @Patch(':id')
+  @Roles('ADMIN')
+  async update(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+    return this.proxy(req, res);
+  }
+
+  // [DELETE] /rewards/:id - 보상 삭제
+  @Delete(':id')
+  @Roles('ADMIN')
+  async delete(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+    return this.proxy(req, res);
+  }
+
 
   // 공통 프록시 처리 함수: 요청을 내부 서버로 전달하고 응답을 반환
   private async proxy(req: ExpressRequest, res: ExpressResponse) {

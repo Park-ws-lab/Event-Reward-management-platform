@@ -177,17 +177,58 @@ describe('RewardRequestService', () => {
   });
 
   describe('getAllRequests', () => {
-    it('전체 요청 목록 조회 시 유저 정보 포함 반환', async () => {
-      const dummyReq = {
-        toObject: () => ({ _id: 'abc', userId: userId }),
-      };
-      mockRequestModel.find().populate().sort().exec.mockResolvedValue([dummyReq]);
-      mockHttpService.get.mockReturnValue(of({ data: { username: 'testuser' } }));
+    const dummyReq = {
+      toObject: () => ({ _id: 'abc', userId: userId }),
+    };
 
-      const result = await service.getAllRequests();
+    beforeEach(() => {
+      mockRequestModel.find.mockReturnThis();
+      mockRequestModel.populate.mockReturnThis();
+      mockRequestModel.sort.mockReturnThis();
+      mockRequestModel.exec.mockResolvedValue([dummyReq]);
+      mockHttpService.get.mockReturnValue(of({ data: { username: 'testuser' } }));
+    });
+
+    it('전체 요청 목록 조회 시 유저 정보 포함 반환', async () => {
+      const result = await service.getAllRequests({});
+      expect(mockRequestModel.find).toHaveBeenCalledWith({});
+      expect(result[0].user.username).toBe('testuser');
+    });
+
+    it('eventId로 필터링된 요청 목록 조회', async () => {
+      const eventObjectId = new Types.ObjectId().toHexString();
+      const result = await service.getAllRequests({ eventId: eventObjectId });
+
+      expect(mockRequestModel.find).toHaveBeenCalledWith({
+        event: new Types.ObjectId(eventObjectId),
+      });
+      expect(result[0].user.username).toBe('testuser');
+    });
+
+    it('status로 필터링된 요청 목록 조회', async () => {
+      const result = await service.getAllRequests({ status: 'SUCCESS' });
+
+      expect(mockRequestModel.find).toHaveBeenCalledWith({
+        status: 'SUCCESS',
+      });
+      expect(result[0].user.username).toBe('testuser');
+    });
+
+    it('eventId + status 조합 필터링된 요청 목록 조회', async () => {
+      const eventObjectId = new Types.ObjectId().toHexString();
+      const result = await service.getAllRequests({
+        eventId: eventObjectId,
+        status: 'FAILED',
+      });
+
+      expect(mockRequestModel.find).toHaveBeenCalledWith({
+        event: new Types.ObjectId(eventObjectId),
+        status: 'FAILED',
+      });
       expect(result[0].user.username).toBe('testuser');
     });
   });
+
 
   describe('getRequestsByUser', () => {
     it('특정 유저의 요청 목록만 반환', async () => {

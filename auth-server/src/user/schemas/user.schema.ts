@@ -19,6 +19,10 @@ export class User {
   // 사용자 역할: 기본값은 'USER', 고정된 4가지 역할 중 하나
   @Prop({ required: true })
   role: 'USER' | 'ADMIN' | 'OPERATOR' | 'AUDITOR';
+
+  // refreshToken 저장 컬럼
+  @Prop()
+  refreshToken?: string;
 }
 
 // 클래스를 기반으로 Mongoose 스키마 생성

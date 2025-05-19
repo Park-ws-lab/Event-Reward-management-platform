@@ -5,14 +5,19 @@ import {
     Post,
     Get,
     Body,
+    Patch,
+    Param,
+    Delete,
+    NotFoundException,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 // '/events' 경로를 처리하는 컨트롤러 클래스
 @Controller('events')
 export class EventController {
-    constructor(private readonly eventService: EventService) {}
+    constructor(private readonly eventService: EventService) { }
 
     // [POST] /events - 새로운 이벤트 등록
     @Post()
@@ -37,4 +42,17 @@ export class EventController {
         const events = await this.eventService.getAllTitles();
         return events;
     }
+
+    // [PATCH] /events/:id - 이벤트 수정
+    @Patch(':id')
+    async update(@Param('id') id: string, @Body() body: UpdateEventDto) {
+        return this.eventService.updateEventOrFail(id, body);
+    }
+
+    // [DELETE] /events/:id - 이벤트 삭제
+    @Delete(':id')
+    async delete(@Param('id') id: string) {
+        return this.eventService.deleteEventOrFail(id);
+    }
+
 }

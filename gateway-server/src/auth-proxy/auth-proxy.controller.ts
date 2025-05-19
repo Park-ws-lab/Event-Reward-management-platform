@@ -7,10 +7,19 @@ import {
   Res,
   HttpStatus,
   Post,
-  Get,
   Patch,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../auth/auth.guard';
+interface JwtPayload {
+  sub: string;
+  username: string;
+  role: string;
+}
 
 // 프론트에서 요청 시 /user 경로로 진입
 @Controller('user')
@@ -23,9 +32,34 @@ export class AuthProxyController {
     return this.proxy(req, res);
   }
 
+  // [POST] /user/logout - 로그아웃 요청을 내부 인증 서버로 전달
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Req() req: Request & { user: JwtPayload }, @Res() res: Response) {
+    req.body.userId = req.user.sub;
+    return this.proxy(req, res);
+  }
+
+
   // [POST] /user/register - 회원가입 요청을 내부 인증 서버로 전달
   @Post('register')
   async register(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
+  // [PATCH] /user/updateUserRole/:id - 사용자 권한 수정
+  @Patch('updateUserRole/:id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async updateUserRole(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
+  // [DELETE] /user/:id - 특정 유저 삭제
+  @Delete(':id')
+  @Roles('ADMIN')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deleteUser(@Req() req: Request, @Res() res: Response) {
     return this.proxy(req, res);
   }
 

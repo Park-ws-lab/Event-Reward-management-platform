@@ -4,9 +4,9 @@ import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './user.schema';
-import { JwtStrategy } from './jwt.strategy';
-import { LoginLog, LoginLogSchema } from './login-log.schema';
+import { User, UserSchema } from './schemas/user.schema';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LoginLog, LoginLogSchema } from './schemas/login-log.schema';
 
 @Module({
   imports: [

@@ -7,8 +7,10 @@ import {
   Get,
   Post,
   UseGuards,
+  Delete,
+  Patch
 } from '@nestjs/common';
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { Request, Response } from 'express';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { JwtAuthGuard } from '../auth/auth.guard';
@@ -17,30 +19,44 @@ import { JwtAuthGuard } from '../auth/auth.guard';
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard) // 모든 핸들러에 인증/권한 가드 적용
 export class EventsProxyController {
-  
+
   // [POST] /events - 이벤트 생성 요청 프록시
   @Post()
   @Roles('OPERATOR', 'ADMIN') // 관리자 또는 운영자만 접근 가능
-  async postEvent(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+  async postEvent(@Req() req: Request, @Res() res: Response) {
     return this.proxy(req, res);
   }
 
   // [GET] /events - 전체 이벤트 목록 요청 프록시
   @Get()
   @Roles('OPERATOR', 'ADMIN')
-  async getEvents(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+  async getEvents(@Req() req: Request, @Res() res: Response) {
     return this.proxy(req, res);
   }
 
   // [GET] /events/titles - 이벤트 제목 목록 요청 프록시
   @Get('titles')
   @Roles('OPERATOR', 'ADMIN')
-  async getTitles(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
+  async getTitles(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
+  // [PATCH] /events/:id - 이벤트 수정
+  @Patch(':id')
+  @Roles('ADMIN')
+  async update(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
+  // [DELETE] /events/:id - 이벤트 삭제
+  @Delete(':id')
+  @Roles('ADMIN')
+  async delete(@Req() req: Request, @Res() res: Response) {
     return this.proxy(req, res);
   }
 
   // 공통 프록시 처리 함수: 요청을 내부 이벤트 서버로 전달
-  private async proxy(req: ExpressRequest, res: ExpressResponse) {
+  private async proxy(req: Request, res: Response) {
     const targetUrl = `http://event-server:3002${req.originalUrl}`;
     const axios = await import('axios');
 

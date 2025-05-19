@@ -5,8 +5,8 @@ import { UserService } from './user.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from './user.schema';
-import { LoginLog } from './login-log.schema';
+import { User } from './schemas/user.schema';
+import { LoginLog } from './schemas/login-log.schema';
 
 describe('UserService', () => {
   let service: UserService;
@@ -18,6 +18,7 @@ describe('UserService', () => {
   beforeEach(async () => {
     mockUserModel = {
       findOne: jest.fn(),
+      updateOne: jest.fn(),
     };
 
     mockLoginLogModel = {
@@ -94,13 +95,20 @@ describe('UserService', () => {
       // 각 단계가 정상적으로 호출되었는지 검증
       expect(mockUserModel.findOne).toHaveBeenCalledWith({ username: 'test' });
       expect(bcrypt.compare).toHaveBeenCalledWith('1234', 'hashed');
-      expect(mockJwtService.sign).toHaveBeenCalledWith({
-        sub: 'abc123',
-        username: 'test',
-        role: 'USER',
-      });
+      expect(mockJwtService.sign).toHaveBeenCalledWith(
+        { sub: 'abc123', username: 'test', role: 'USER' },
+        { expiresIn: '15m' },
+      );
+
+      expect(mockJwtService.sign).toHaveBeenCalledWith(
+        { sub: 'abc123', username: 'test', role: 'USER' },
+        { expiresIn: '7d' },
+      );
       expect(mockLoginLogModel.create).toHaveBeenCalledWith({ username: 'test' });
-      expect(result).toEqual({ access_token: 'fake-jwt-token' });
+      expect(result).toEqual({
+        accessToken: 'fake-jwt-token',
+        refreshToken: 'fake-jwt-token',
+      });
     });
   });
 });

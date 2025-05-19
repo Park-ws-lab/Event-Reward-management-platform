@@ -2,7 +2,7 @@
 
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Invite, InviteSchema } from './invite.schema';
+import { Invite, InviteSchema } from './schemas/invite.schema';
 import { InviteService } from './invite.service';
 import { InviteController } from './invite.controller';
 

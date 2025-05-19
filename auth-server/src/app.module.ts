@@ -1,8 +1,6 @@
 // 애플리케이션의 최상위 모듈 (전역 설정 및 핵심 모듈 구성)
 
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -34,8 +32,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
 
-  // 기본 컨트롤러 및 서비스 등록
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule { }

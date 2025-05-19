@@ -7,12 +7,16 @@ import {
   Get,
   Param,
   NotFoundException,
+  Req,
+  Patch,
+  Delete
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './user.schema';
-import { LoginLog, LoginLogDocument } from './login-log.schema';
+import { User, UserDocument } from './schemas/user.schema';
+import { LoginLog, LoginLogDocument } from './schemas/login-log.schema';
 import { Model } from 'mongoose';
 
 @Controller('user') // '/user' 경로 처리 컨트롤러
@@ -70,46 +74,52 @@ export class UserController {
     };
   }
 
+  // [POST] /user/logout - 사용자 로그인 API
+  @Post('logout')
+  async logout(@Body() body: { userId: string }) {
+    return this.userService.logout(body.userId); // 명시적 파라미터 사용
+  }
+
+
+  // [PATCH] /user/updateUserRole/:id - 사용자 권한 수정
+  @Patch('updateUserRole/:id')
+  async updateUserRole(
+    @Param('id') userId: string,
+    @Body() dto: UpdateRoleDto,
+  ) {
+    // 관리자 검증은 RolesGuard가 처리함
+    return this.userService.updateUserRole(userId, dto.role);
+  }
+
+  // [DELETE] /user/:id - 특정 유저 삭제
+  @Delete(':id')
+  async deleteUser(@Param('id') userId: string) {
+    const deleted = await this.userService.deleteUser(userId);
+    if (!deleted) {
+      throw new NotFoundException('User not found or already deleted');
+    }
+
+    return { message: '유저가 성공적으로 삭제되었습니다.' };
+  }
+
+
+  // 여기부터는 내부 API
   // [GET] /user/login-count/:userId - 특정 유저 전체 및 최근 7일 이내 로그인 횟수 조회 API
   @Get('/login-count/:userId')
   async getLoginCount(@Param('userId') userId: string) {
-    // 유저 조회
-    const user = await this.userModel.findById(userId);
-    if (!user) throw new NotFoundException('유저를 찾을 수 없습니다');
-
-    // 해당 유저의 로그인 로그 조회
-    const logs = await this.loginlogModel
-      .find({ username: user.username })
-      .select('createdAt'); // 로그인 날짜만 조회
-
-    // 전체 기간의 고유한 로그인 날짜 수 계산
-    const allDays = new Set(
-      logs.map(log => log.createdAt.toISOString().split('T')[0]),
-    );
-
-    // 최근 7일 이내 고유 날짜 수 계산
-    const recent7Days = new Set(
-      logs
-        .filter(
-          log =>
-            log.createdAt >=
-            new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        )
-        .map(log => log.createdAt.toISOString().split('T')[0]),
-    );
-
-    // 날짜 수 반환
-    return {
-      totalUniqueDays: allDays.size,
-      recent7DaysUnique: recent7Days.size,
-    };
+    return this.userService.getLoginCount(userId);
   }
 
   // [GET] /:userId - 전체 보상 요청 목록 조회 시 유저 정보 포함을 위한 유저 정보 제공 API
   @Get(':userId')
   async getUserById(@Param('userId') userId: string) {
-    const user = await this.userModel.findById(userId).select('-password'); // 비밀번호 제외
-    if (!user) throw new NotFoundException('유저를 찾을 수 없습니다');
-    return user;
+    return this.userService.getUserById(userId);
   }
+
+  // [POST] /user/refresh - 리프레시 토큰으로 액세스 토큰 재발급 요청
+  @Post('refresh')
+  async refreshToken(@Body() body: { refreshToken: string }) {
+    return this.userService.refreshAccessToken(body.refreshToken);
+  }
+
 }

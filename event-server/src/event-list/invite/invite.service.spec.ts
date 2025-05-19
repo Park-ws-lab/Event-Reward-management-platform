@@ -3,7 +3,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InviteService } from './invite.service';
 import { getModelToken } from '@nestjs/mongoose';
-import { Invite } from './invite.schema';
+import { Invite } from './schemas/invite.schema';
 import { Types } from 'mongoose';
 
 describe('InviteService', () => {

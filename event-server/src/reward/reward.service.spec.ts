@@ -3,7 +3,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { RewardService } from './reward.service';
-import { Reward } from './reward.schema';
+import { Reward } from './schemas/reward.schema';
 import { Types } from 'mongoose';
 import { CreateRewardDto } from './dto/create-reward.dto';
 
