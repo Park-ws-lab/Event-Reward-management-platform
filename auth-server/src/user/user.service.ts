@@ -1,9 +1,9 @@
 // user 관련 로직을 처리하는 서비스 클래스
 
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, BadRequestException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { LoginLog, LoginLogDocument } from './schemas/login-log.schema'
 import * as bcrypt from 'bcrypt';
@@ -25,24 +25,37 @@ export class UserService {
     ) { }
 
     // 회원가입: bcrypt를 이용해 비밀번호를 암호화한 후 MongoDB에 사용자 정보 저장
-    async register(username: string, password: string, role: string = "USER") {
+    async register(username: string, password: string, role: string = 'USER') {
         const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 해싱
 
-        // MongoDB에 사용자 저장
-        return this.userModel.create({
-            username,
-            password: hashedPassword,
-            role,
-        });
+        try {
+            // 사용자 생성 시도
+            return await this.userModel.create({
+                username,
+                password: hashedPassword,
+                role,
+            });
+        } catch (error: any) {
+            // MongoDB 중복 키 에러 처리
+            if (error.code === 11000 && error.keyPattern?.username) {
+                throw new ConflictException('이미 존재하는 사용자입니다.');
+            }
+            // 기타 예외 처리
+            throw new BadRequestException('회원가입 중 오류가 발생했습니다.');
+        }
     }
 
     // 로그인: 사용자 조회 + 비밀번호 비교 + JWT 토큰 발급
     async login(username: string, password: string) {
         const user = await this.userModel.findOne({ username });
-        if (!user) return null;
+        if (!user) {
+            throw new UnauthorizedException('존재하지 않는 사용자입니다.');
+        }
 
-        const isMatch = await bcrypt.compare(password, user.password); // 비밀번호 일치 확인
-        if (!isMatch) return null;
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
+        }
 
         const payload = {
             sub: user._id,         // 사용자 고유 ID
@@ -76,7 +89,7 @@ export class UserService {
     async logout(userId: string) {
         const user = await this.userModel.findById(userId);
         if (!user) {
-            throw new UnauthorizedException('User not found');
+            throw new NotFoundException('유저를 찾을 수 없습니다');
         }
 
         user.refreshToken = undefined; // 또는 null
@@ -128,10 +141,14 @@ export class UserService {
 
     // [PATCH] 사용자 역할(권한) 변경
     async updateUserRole(userId: string, newRole: any) {
+        // ObjectId 형식인지 검증
+        if (!Types.ObjectId.isValid(userId)) {
+            throw new BadRequestException('유효하지 않은 유저 ID입니다.');
+        }
         // 유저 조회
         const user = await this.userModel.findById(userId);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('유저를 찾을 수 없습니다');
         }
 
         // 역할 업데이트 및 저장

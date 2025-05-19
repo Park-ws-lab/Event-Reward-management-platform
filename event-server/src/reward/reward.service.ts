@@ -1,25 +1,40 @@
 // reward 관련 로직을 처리하는 서비스 클래스
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Reward, RewardDocument } from './schemas/reward.schema';
 import { Model, Types } from 'mongoose';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { NotFoundException } from '@nestjs/common';
+import { Event } from '../event/schemas/event.schema';
 
 @Injectable()
 export class RewardService {
     constructor(
         // MongoDB Reward 모델 주입
         @InjectModel(Reward.name) private rewardModel: Model<RewardDocument>,
+
+        @InjectModel(Event.name)
+        private readonly eventModel: Model<Event>,
     ) { }
 
     // 보상 생성
     async createReward(dto: CreateRewardDto): Promise<Reward> {
         const { eventId, ...rest } = dto;
 
-        // 문자열 형태의 이벤트 ID를 ObjectId로 변환
+        // 1. 이벤트 ID 유효성 검사 (ObjectId 형식 여부)
+        if (!Types.ObjectId.isValid(eventId)) {
+            throw new BadRequestException('잘못된 이벤트 ID 형식입니다.');
+        }
+
+        // 2. 해당 이벤트가 실제로 존재하는지 확인
+        const event = await this.eventModel.findById(eventId);
+        if (!event) {
+            throw new NotFoundException('해당 이벤트를 찾을 수 없습니다.');
+        }
+
+        // 3. 보상 생성
         const reward = new this.rewardModel({
             event: new Types.ObjectId(eventId),
             ...rest,

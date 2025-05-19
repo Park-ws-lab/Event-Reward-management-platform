@@ -1,9 +1,9 @@
 // event 관련 로직을 처리하는 서비스 클래스
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Event, EventDocument } from './schemas/event.schema';
-import { Model } from 'mongoose';
+import { Model,Types } from 'mongoose';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { NotFoundException } from '@nestjs/common';
@@ -17,6 +17,16 @@ export class EventService {
 
     // 새로운 이벤트 생성
     async createEvent(dto: CreateEventDto) {
+        // 필드 누락 검사
+        if (!dto.title || !dto.condition || !dto.startDate || !dto.endDate) {
+            throw new BadRequestException('필수 입력 항목이 누락되었습니다.');
+        }
+
+        // 날짜 유효성 검사
+        if (isNaN(Date.parse(dto.startDate as any)) || isNaN(Date.parse(dto.endDate as any))) {
+            throw new BadRequestException('날짜 형식이 올바르지 않습니다.');
+        }
+        
         const event = new this.eventModel(dto); // DTO 기반 문서 생성
         return event.save(); // MongoDB에 저장
     }
@@ -39,6 +49,9 @@ export class EventService {
 
     // 이벤트 수정
     async updateEventOrFail(id: string, dto: UpdateEventDto) {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('잘못된 이벤트 ID 형식입니다.');
+        }
         const updated = await this.eventModel.findByIdAndUpdate(id, dto, { new: true }).exec();
         if (!updated) {
             throw new NotFoundException('해당 이벤트를 찾을 수 없습니다.');
