@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RewardRequestController } from './reward-request.controller';
 import { RewardRequestService } from './reward-request.service';
 import { CreateRewardRequestDto } from './dto/create-reward-request.dto';
+import { Types } from 'mongoose';
 
 describe('RewardRequestController', () => {
   let controller: RewardRequestController;
@@ -53,8 +54,18 @@ describe('RewardRequestController', () => {
   describe('findAll()', () => {
     it('모든 보상 요청 목록과 개수를 반환해야 함', async () => {
       const mockRequests = [
-        { userId: 'user1', eventId: 'event1' },
-        { userId: 'user2', eventId: 'event2' },
+        {
+          _id: new Types.ObjectId(),
+          userId: new Types.ObjectId(),
+          event: new Types.ObjectId(),
+          status: 'SUCCESS',
+        },
+        {
+          _id: new Types.ObjectId(),
+          userId: new Types.ObjectId(),
+          event: new Types.ObjectId(),
+          status: 'FAILED',
+        },
       ];
 
       mockRewardRequestService.getAllRequests.mockResolvedValue(mockRequests);
@@ -69,20 +80,36 @@ describe('RewardRequestController', () => {
     });
 
     it('eventId만 전달했을 때 필터링된 결과 반환', async () => {
-      const eventId = 'event123';
-      const mockRequests = [{ userId: 'user1', eventId }];
+      const eventId = new Types.ObjectId();
+
+      const mockRequests = [
+        {
+          _id: new Types.ObjectId(),
+          userId: new Types.ObjectId(),
+          event: eventId,
+          status: 'SUCCESS',
+        },
+      ];
 
       mockRewardRequestService.getAllRequests.mockResolvedValue(mockRequests);
 
-      const result = await controller.findAllWithFilter(eventId, undefined);
+      const result = await controller.findAllWithFilter(eventId.toString(), undefined);
 
-      expect(mockRewardRequestService.getAllRequests).toHaveBeenCalledWith({ eventId });
-      expect(result.requests[0].eventId).toBe(eventId);
+      expect(mockRewardRequestService.getAllRequests).toHaveBeenCalledWith({ eventId: eventId.toString() });
+      expect(result.requests[0].event).toEqual(expect.any(Types.ObjectId));
     });
 
     it('status만 전달했을 때 필터링된 결과 반환', async () => {
       const status = 'SUCCESS';
-      const mockRequests = [{ userId: 'user2', status }];
+
+      const mockRequests = [
+        {
+          _id: new Types.ObjectId(),
+          userId: new Types.ObjectId(),
+          event: new Types.ObjectId(),
+          status,
+        },
+      ];
 
       mockRewardRequestService.getAllRequests.mockResolvedValue(mockRequests);
 
@@ -93,26 +120,45 @@ describe('RewardRequestController', () => {
     });
 
     it('eventId와 status 모두 전달했을 때 필터링된 결과 반환', async () => {
-      const filters = { eventId: 'event456', status: 'FAILED' };
-      const mockRequests = [{ userId: 'user3', ...filters }];
+      const eventId = new Types.ObjectId();
+      const status = 'FAILED';
+      const filters = { eventId: eventId.toString(), status };
+
+      const mockRequests = [
+        {
+          _id: new Types.ObjectId(),
+          userId: new Types.ObjectId(),
+          event: eventId,
+          status,
+        },
+      ];
 
       mockRewardRequestService.getAllRequests.mockResolvedValue(mockRequests);
 
       const result = await controller.findAllWithFilter(filters.eventId, filters.status);
       expect(mockRewardRequestService.getAllRequests).toHaveBeenCalledWith(filters);
-      expect(result.requests[0].eventId).toBe(filters.eventId);
+      expect(result.requests[0].event).toEqual(expect.any(Types.ObjectId));
       expect(result.requests[0].status).toBe(filters.status);
     });
   });
-
 
   // 특정 유저의 요청 조회 API 테스트
   describe('findByUser()', () => {
     it('특정 유저의 보상 요청 목록을 반환해야 함', async () => {
       const userId = 'user1';
       const mockUserRequests = [
-        { userId, eventId: 'event1' },
-        { userId, eventId: 'event3' },
+        {
+          _id: new Types.ObjectId(),
+          userId,
+          event: new Types.ObjectId(),
+          status: 'SUCCESS',
+        },
+        {
+          _id: new Types.ObjectId(),
+          userId,
+          event: new Types.ObjectId(),
+          status: 'FAILED',
+        },
       ];
 
       mockRewardRequestService.getRequestsByUser.mockResolvedValue(mockUserRequests);

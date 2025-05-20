@@ -66,7 +66,6 @@ export class RewardRequestService {
           return false;
         }
       }
-
       // 로그인 횟수 기반 조건 검사
       case 'DAILY_LOGIN': {
         const { data } = await firstValueFrom(
@@ -101,7 +100,7 @@ export class RewardRequestService {
 
       const todayReward = await this.requestModel.findOne({
         userId: new Types.ObjectId(userId),
-        eventId: new Types.ObjectId(eventId),
+        event: new Types.ObjectId(eventId),
         status: 'SUCCESS',
         createdAt: { $gte: start, $lte: end },
       });
@@ -112,7 +111,7 @@ export class RewardRequestService {
     } else {
       const existing = await this.requestModel.findOne({
         userId: new Types.ObjectId(userId),
-        eventId: new Types.ObjectId(eventId),
+        event: new Types.ObjectId(eventId),
         status: 'SUCCESS',
       });
 
@@ -122,7 +121,7 @@ export class RewardRequestService {
     }
 
     // 보상 존재 여부 확인
-    const rewards = await this.rewardModel.find({ event: eventId });
+    const rewards = await this.rewardModel.find({ event: new Types.ObjectId(eventId) });
     if (rewards.length === 0) {
       throw new BadRequestException('이벤트에 등록된 보상이 없습니다.');
     }

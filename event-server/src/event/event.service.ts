@@ -35,12 +35,13 @@ export class EventService {
     async getAllEvents(): Promise<Event[]> {
         return this.eventModel
             .find() // 모든 이벤트 조회
-            .populate({ path: 'rewards' }) // Reward virtual 필드 자동 채움
+            .populate('rewards') // Reward virtual 필드 자동 채움
             .exec(); // 쿼리 실행
     }
 
     // 이벤트 제목만 조회 (최신 순 정렬)
     async getAllTitles(): Promise<Event[]> {
+        
         return this.eventModel
             .find({}, { title: 1 }) // title 필드만 선택
             .sort({ createdAt: -1 }) // 최신 생성순 정렬

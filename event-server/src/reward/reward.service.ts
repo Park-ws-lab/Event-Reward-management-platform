@@ -36,7 +36,7 @@ export class RewardService {
 
         // 3. 보상 생성
         const reward = new this.rewardModel({
-            event: dto.eventId, // ← 이렇게 매핑되고 있는지
+            event: new Types.ObjectId(dto.eventId),
             type: dto.type,
             value: dto.value,
             quantity: dto.quantity,

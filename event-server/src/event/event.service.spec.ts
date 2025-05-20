@@ -71,7 +71,7 @@ describe('EventService', () => {
       const result = await service.getAllEvents();
 
       expect(mockEventModel.find).toHaveBeenCalled();
-      expect(mockPopulate).toHaveBeenCalledWith({ path: 'rewards' });
+      expect(mockPopulate).toHaveBeenCalledWith('rewards');
       expect(result).toEqual([
         { title: 'Event 1', rewards: [] },
         { title: 'Event 2', rewards: [] },

@@ -15,7 +15,7 @@ export class RewardRequest {
 
   // 보상을 요청한 이벤트의 ID (Event 컬렉션 참조)
   @Prop({ type: Types.ObjectId, ref: Event.name, required: true })
-  eventId: Types.ObjectId;
+  event: Types.ObjectId;
 
   // 요청 상태 ('PENDING' | 'SUCCESS' | 'FAILED'), 기본값은 PENDING
   @Prop({ default: 'PENDING', enum: ['PENDING', 'SUCCESS', 'FAILED'] })

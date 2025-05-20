@@ -60,7 +60,7 @@ describe('RewardService', () => {
     it('이벤트가 존재하면 보상을 생성해야 한다', async () => {
       const dto = {
         eventId: new Types.ObjectId().toHexString(), // 유효한 ObjectId 문자열
-        name: '쿠폰 5000원',
+        value: '쿠폰 5000원',
         quantity: 100,
       };
 
@@ -75,7 +75,7 @@ describe('RewardService', () => {
       // 반환 결과 확인
       expect(result).toMatchObject({
         event: expect.any(Types.ObjectId), // 이벤트는 ObjectId 타입
-        name: '쿠폰 5000원',
+        value: '쿠폰 5000원',
         quantity: 100,
       });
     });

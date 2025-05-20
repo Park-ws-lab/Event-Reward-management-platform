@@ -1,4 +1,4 @@
-// UserService 단위 테스트 코드
+// user 서비스 테스트 코드 
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './schemas/user.schema';
 import { LoginLog } from './schemas/login-log.schema';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('UserService', () => {
   let service: UserService;
@@ -14,10 +15,11 @@ describe('UserService', () => {
   let mockLoginLogModel: any;
   let mockJwtService: any;
 
-  // 테스트 실행 전 각종 의존성(Mock) 설정
+  // 각 의존성 모듈들을 mocking하여 테스트 환경 구성
   beforeEach(async () => {
     mockUserModel = {
       findOne: jest.fn(),
+      create: jest.fn(),
       updateOne: jest.fn(),
     };
 
@@ -41,73 +43,96 @@ describe('UserService', () => {
     service = module.get<UserService>(UserService);
   });
 
-  // 회원가입 테스트
+  // 회원가입 기능 테스트
   describe('register', () => {
-    it('비밀번호 해싱 후 사용자 저장', async () => {
+    it('해싱된 비밀번호로 사용자 생성', async () => {
       const hashedPassword = 'hashed-password';
-      const mockCreatedUser = { username: 'test', password: hashedPassword, role: 'USER' };
+      const mockUser = {
+        username: 'test',
+        password: hashedPassword,
+        role: 'USER',
+      };
 
-      // bcrypt.hash 함수 mock 처리
-      jest.spyOn(bcrypt as any, 'hash').mockResolvedValue(hashedPassword);
-      // userModel.create mock 처리
-      mockUserModel.create = jest.fn().mockResolvedValue(mockCreatedUser);
+      // 비밀번호 해싱 mock
+      jest.spyOn(bcrypt, 'hash').mockResolvedValue(hashedPassword as never);
+      // 유저 생성 mock
+      mockUserModel.create.mockResolvedValue(mockUser);
 
       const result = await service.register('test', '1234');
 
-      // 비밀번호 해싱 및 사용자 생성이 호출되었는지 검증
+      // 해싱 및 유저 저장이 정상 호출되었는지 검증
       expect(bcrypt.hash).toHaveBeenCalledWith('1234', 10);
       expect(mockUserModel.create).toHaveBeenCalledWith({
         username: 'test',
         password: hashedPassword,
         role: 'USER',
       });
-      expect(result).toEqual(mockCreatedUser);
+      expect(result).toEqual(mockUser);
     });
   });
 
-  // 로그인 테스트
+  // 로그인 기능 테스트
   describe('login', () => {
-    it('존재하지 않는 유저면 null 반환', async () => {
+    it('존재하지 않는 유저면 UnauthorizedException 발생', async () => {
+      // 사용자 미존재 시 findOne이 null 반환
       mockUserModel.findOne.mockResolvedValue(null);
 
-      const result = await service.login('test', '1234');
-      expect(result).toBeNull();
+      // 예외 발생 검증
+      await expect(service.login('nouser', '1234')).rejects.toThrow(UnauthorizedException);
     });
 
-    it('비밀번호 불일치 시 null 반환', async () => {
+    it('비밀번호 불일치 시 UnauthorizedException 발생', async () => {
       const user = { username: 'test', password: 'hashed', role: 'USER' };
-      mockUserModel.findOne.mockResolvedValue(user);
-      jest.spyOn(bcrypt as any, 'compare').mockResolvedValue(false);
 
-      const result = await service.login('test', 'wrongpass');
-      expect(result).toBeNull();
+      // 사용자 정보는 존재하지만
+      mockUserModel.findOne.mockResolvedValue(user);
+      // 비밀번호 비교 결과 false
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
+
+      // 예외 발생 검증
+      await expect(service.login('test', 'wrongpass')).rejects.toThrow(UnauthorizedException);
     });
 
-    it('로그인 성공 시 JWT 토큰 반환', async () => {
-      const user = { _id: 'abc123', username: 'test', password: 'hashed', role: 'USER' };
+    it('로그인 성공 시 토큰과 유저 정보 반환', async () => {
+      const user = {
+        _id: 'abc123',
+        username: 'test',
+        password: 'hashed',
+        role: 'USER',
+      };
+
+      // 로그인 과정 mock
       mockUserModel.findOne.mockResolvedValue(user);
-      jest.spyOn(bcrypt as any, 'compare').mockResolvedValue(true);
-      mockJwtService.sign.mockReturnValue('fake-jwt-token');
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
+      mockJwtService.sign
+        .mockReturnValueOnce('fake-jwt-token') // accessToken
+        .mockReturnValueOnce('fake-jwt-token'); // refreshToken
       mockLoginLogModel.create.mockResolvedValue({ username: 'test' });
 
       const result = await service.login('test', '1234');
 
-      // 각 단계가 정상적으로 호출되었는지 검증
+      // 유저 조회, 비번 비교, 토큰 생성, 로그인 로그 기록 호출 검증
       expect(mockUserModel.findOne).toHaveBeenCalledWith({ username: 'test' });
       expect(bcrypt.compare).toHaveBeenCalledWith('1234', 'hashed');
+
+      // JWT 토큰 생성 확인 (2회 호출됨)
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'abc123', username: 'test', role: 'USER' },
         { expiresIn: '15m' },
       );
-
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'abc123', username: 'test', role: 'USER' },
         { expiresIn: '7d' },
       );
+
+      // 로그인 로그 생성 확인
       expect(mockLoginLogModel.create).toHaveBeenCalledWith({ username: 'test' });
+
+      // 반환값 검증 (토큰 + 유저 정보 포함)
       expect(result).toEqual({
         accessToken: 'fake-jwt-token',
         refreshToken: 'fake-jwt-token',
+        user,
       });
     });
   });
