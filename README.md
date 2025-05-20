@@ -10,8 +10,8 @@ NestJS 기반 MSA 아키텍처로 구현된 이벤트 보상 자동화 플랫폼
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/yourname/event-reward-platform.git
-cd event-reward-platform
+git clone https://github.com/Park-ws-lab/Event-Reward-management-platform.git
+cd Event-Reward-management-platform
 
 # 2. 각 서버(auth-server, event-server, gateway-server)에 .env 파일 생성
 # 아래 `.env 설정` 참고
@@ -63,7 +63,36 @@ docker-compose up --build
 ## 🧾 .env 설정 예시
 
 .env는 각 서버 폴더(auth-server, event-server, gateway-server) 안에 생성해주세요.
-각 폴더마다 .env 내용이 명시되어 있습니다.
+
+### 📁 auth-server/.env
+
+```env
+
+MONGO_URL=mongodb://mongodb:27017/user-db
+PORT=3001
+JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
+
+```
+
+### 📁 event-server/.env
+
+```env
+
+MONGO_URL=mongodb://mongodb:27017/event-db
+PORT=3002
+AUTH_PORT=3001
+
+```
+
+### 📁 gateway-server/.env
+
+```env
+
+JWT_SECRET=758b41bd2bb892fb55ffb206fa126c25a4c28ffbe24d76ac0f529974a1111095
+AUTH_PORT=3001
+EVENT-PORT=3002
+
+```
 
 <br>
 
