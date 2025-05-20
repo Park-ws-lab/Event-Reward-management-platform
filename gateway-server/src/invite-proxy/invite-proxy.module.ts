@@ -3,8 +3,11 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { InviteProxyController } from './invite-proxy.controller';
 import { AuthMiddleware } from '../auth/auth.middleware';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
+
+  imports: [HttpModule],
   // 친구 초대 프록시 컨트롤러 등록
   controllers: [InviteProxyController],
 })

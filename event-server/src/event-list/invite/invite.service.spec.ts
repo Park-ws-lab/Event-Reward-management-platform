@@ -5,6 +5,7 @@ import { InviteService } from './invite.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Invite } from './schemas/invite.schema';
 import { Types } from 'mongoose';
+import { BadRequestException } from '@nestjs/common';
 
 describe('InviteService', () => {
   let service: InviteService;
@@ -16,7 +17,7 @@ describe('InviteService', () => {
     mockInviteModel = {
       findOne: jest.fn(),
       countDocuments: jest.fn(),
-      prototype: { save: jest.fn() },
+      create: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -31,7 +32,7 @@ describe('InviteService', () => {
 
   describe('checkDuplicate()', () => {
     it('초대 기록이 있으면 true 반환', async () => {
-      mockInviteModel.findOne.mockResolvedValue({ inviter: 'user1', invited: 'user2' });
+      mockInviteModel.findOne.mockResolvedValue({});
 
       const result = await service.checkDuplicate(user1Id, user2Id);
 
@@ -52,45 +53,61 @@ describe('InviteService', () => {
   });
 
   describe('create()', () => {
-    it('초대 정보를 생성하고 저장해야 함', async () => {
-      const mockSave = jest.fn().mockResolvedValue({
+    it('초대 정보를 저장해야 함', async () => {
+      const mockResult = {
         inviter: user1Id,
         invited: user2Id,
-      });
-
-      // 생성자처럼 동작하는 mock (new this.inviteModel({...}))
-      mockInviteModel.mockImplementation = jest.fn(() => ({
-        save: mockSave,
-      }));
-
-      // 수동으로 인스턴스 생성 및 save 호출
-      const serviceWithMockedNew = new InviteService(mockInviteModel);
-      (serviceWithMockedNew as any).inviteModel = function (data: any) {
-        return {
-          save: mockSave,
-        };
       };
 
-      const result = await serviceWithMockedNew.create(user1Id, user2Id);
+      mockInviteModel.create.mockResolvedValue(mockResult as any);
 
-      expect(mockSave).toHaveBeenCalled();
-      expect(result).toEqual({
-        inviter: user1Id,
-        invited: user2Id,
+      const result = await service.create(user1Id, user2Id);
+
+      expect(mockInviteModel.create).toHaveBeenCalledWith({
+        inviter: new Types.ObjectId(user1Id),
+        invited: new Types.ObjectId(user2Id),
       });
+      expect(result).toEqual(mockResult);
     });
   });
 
   describe('countInvites()', () => {
-    it('해당 유저가 초대한 인원 수를 반환해야 함', async () => {
-      mockInviteModel.countDocuments.mockResolvedValue(3);
+    it('초대한 유저 수를 반환해야 함', async () => {
+      mockInviteModel.countDocuments.mockResolvedValue(5);
 
       const result = await service.countInvites(user1Id);
 
       expect(mockInviteModel.countDocuments).toHaveBeenCalledWith({
         inviter: new Types.ObjectId(user1Id),
       });
-      expect(result).toBe(3);
+      expect(result).toBe(5);
+    });
+  });
+
+  describe('handleInvite()', () => {
+    it('인원 부족 시 예외 발생', async () => {
+      await expect(service.handleInvite('', '')).rejects.toThrow('인원 부족');
+    });
+
+    it('자기 자신을 초대하면 예외 발생', async () => {
+      await expect(service.handleInvite(user1Id, user1Id)).rejects.toThrow('같이 사람 불가');
+    });
+
+    it('중복 초대 시 예외 발생', async () => {
+      jest.spyOn(service, 'checkDuplicate').mockResolvedValue(true);
+
+      await expect(service.handleInvite(user1Id, user2Id)).rejects.toThrow('이미 초대된 유저');
+    });
+
+    it('유효한 요청이면 create 호출', async () => {
+      const mockResult = { inviter: user1Id, invited: user2Id };
+      jest.spyOn(service, 'checkDuplicate').mockResolvedValue(false);
+      jest.spyOn(service, 'create').mockResolvedValue(mockResult as any);
+
+      const result = await service.handleInvite(user1Id, user2Id);
+
+      expect(service.create).toHaveBeenCalledWith(user1Id, user2Id);
+      expect(result).toEqual(mockResult);
     });
   });
 });

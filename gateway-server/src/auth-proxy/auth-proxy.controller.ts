@@ -35,8 +35,7 @@ export class AuthProxyController {
   // [POST] /user/logout - 로그아웃 요청을 내부 인증 서버로 전달
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(@Req() req: Request & { user: JwtPayload }, @Res() res: Response) {
-    req.body.userId = req.user.sub;
+  async logout(@Req() req: Request, @Res() res: Response) {
     return this.proxy(req, res);
   }
 
